@@ -1,0 +1,11 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#0B1220"/>
+  <circle cx="220" cy="200" r="180" fill="#14A387" opacity="0.95"/>
+  <circle cx="1020" cy="520" r="220" fill="#F59E0B" opacity="0.9"/>
+  <text x="120" y="330" fill="white" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto" font-size="72" font-weight="700">
+    Virgo Society Uganda
+  </text>
+  <text x="120" y="410" fill="white" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto" font-size="32" opacity="0.85">
+    Empowering sustainable incomes for youth & women groups.
+  </text>
+</svg>
