@@ -33,3 +33,5 @@ Open http://localhost:3000
 - Home metrics + hero text: `app/page.tsx`
 - Blog sample posts: `content/blog/posts.ts`
 
+
+

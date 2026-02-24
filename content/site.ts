@@ -1,6 +1,6 @@
 export const site = {
   name: "Virgo Building Society Uganda",
-  tagline: "Empowering youth, women, and communities to build sustainable incomes.",
+  tagline: "Empowering youth, women, and communities to build sustainable incomes in Uganda.",
   description:
     "Virgo Building Society Uganda supports registered youth and women groups, strengthens financial skills, provides training, supports children, and offers affordable low-interest loans—open to donors and partners for greater impact.",
   location: "Uganda",
@@ -14,4 +14,7 @@ export const site = {
     linkedin: "#",
   },
 };
+
+
+
 

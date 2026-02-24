@@ -1,4 +1,4 @@
-﻿import { notFound } from "next/navigation";
+import { notFound } from "next/navigation";
 import { Container } from "@/components/site/container";
 import { PageHero } from "@/components/site/page-hero";
 import { posts } from "@/content/blog/posts";
@@ -15,7 +15,7 @@ export default async function BlogPostPage({
 
   return (
     <>
-      <PageHero eyebrow={`Blog • ${post.category}`} title={post.title} subtitle={post.excerpt} />
+      <PageHero eyebrow={`Blog � ${post.category}`} title={post.title} subtitle={post.excerpt} />
 
       <Container className="py-12 md:py-16">
         <article className="prose max-w-none">
@@ -42,3 +42,4 @@ export default async function BlogPostPage({
     </>
   );
 }
+
