@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, HandHeart, ShieldCheck, Users } from "lucide-react";
 import { Container } from "@/components/site/container";
@@ -31,8 +31,8 @@ export default function HomePage() {
   return (
     <>
       <section className="relative overflow-hidden">
-        <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-brand-200/40 blur-3xl" />
-        <div className="absolute -bottom-28 -right-28 h-80 w-80 rounded-full bg-sun-200/40 blur-3xl" />
+        <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-brand-200/25 blur-2xl" />
+        <div className="absolute -bottom-28 -right-28 h-80 w-80 rounded-full bg-sun-200/25 blur-2xl" />
 
         <div className="absolute inset-0 -z-10">
           <Image
@@ -48,7 +48,7 @@ export default function HomePage() {
         <Container className="py-14 md:py-20">
           <div className="grid gap-10 md:grid-cols-2 md:items-center">
             <FadeIn>
-              <Badge>Uganda â€¢ Youth â€¢ Women â€¢ Children</Badge>
+              <Badge>Uganda • Youth • Women • Children</Badge>
               <h1 className="mt-4 text-4xl md:text-5xl font-semibold tracking-tight">
                 Building sustainable incomes for communities that deserve a real chance.
               </h1>
@@ -85,7 +85,7 @@ export default function HomePage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-sm font-semibold">How Virgo works</div>
-                      <div className="text-sm text-mutedInk mt-1">Simple pathway from training â†’ capital â†’ growth.</div>
+                      <div className="text-sm text-mutedInk mt-1">Simple pathway from training → capital → growth.</div>
                     </div>
                     <Badge>Community-led</Badge>
                   </div>
@@ -211,5 +211,6 @@ function ProgramCard({
     </Card>
   );
 }
+
 
 
