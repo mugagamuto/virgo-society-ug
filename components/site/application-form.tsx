@@ -38,7 +38,7 @@ export function ApplicationForm() {
   const [sent, setSent] = useState(false);
 
   const subject = useMemo(() => {
-    const name = data.orgName?.trim() || "New Application";
+    const name = data.orgName.trim() || "New Application";
     return encodeURIComponent("Support Application - " + name);
   }, [data.orgName]);
 
@@ -67,7 +67,7 @@ export function ApplicationForm() {
   const mailto = useMemo(() => {
     // TODO: replace with your official email
     const to = "info@yourdomain.com";
-    return mailto:?subject=&body=;
+    return "mailto:" + to + "?subject=" + subject + "&body=" + body;
   }, [subject, body]);
 
   const requiredOk =
