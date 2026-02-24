@@ -30,9 +30,7 @@ const highlights = [
 export default function HomePage() {
   return (
     <>
-      <section className="relative overflow-hidden">
-        <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-brand-200/25 blur-2xl" />
-        <div className="absolute -bottom-28 -right-28 h-80 w-80 rounded-full bg-sun-200/25 blur-2xl" />
+      <section className="relative overflow-hidden bg-gradient-to-b from-brand-50/60 to-white">
 
         <div className="absolute inset-0 -z-10">
           <Image
@@ -211,6 +209,7 @@ function ProgramCard({
     </Card>
   );
 }
+
 
 
 
