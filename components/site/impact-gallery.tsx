@@ -8,24 +8,24 @@ import { Button } from "@/components/ui/button";
 const items = [
   {
     tag: "Children",
-    title: "Support children’s education",
+    title: "Support children's education",
     desc: "School support, essential supplies, and targeted welfare that keeps children learning.",
     href: "/donate",
     img: "/photos/children.jpg",
   },
   {
     tag: "Women",
-    title: "Women group training & enterprise",
+    title: "Women group training and enterprise",
     desc: "Practical financial skills, savings culture, and support to grow group-led businesses.",
     href: "/programs",
-    img: "/photos/children.jpg",
+    img: "/photos/women.jpg",
   },
   {
     tag: "Youth",
-    title: "Youth skills & startups",
+    title: "Youth skills and startups",
     desc: "Mentorship, startup readiness, and tools to help youth turn ideas into stable income.",
     href: "/programs",
-    img: "/photos/children.jpg",
+    img: "/photos/youth.jpg",
   },
 ];
 
@@ -58,7 +58,6 @@ export function ImpactGallery() {
                   fill
                   className="object-cover"
                   sizes="(max-width: 768px) 100vw, 33vw"
-                  priority={false}
                 />
               </div>
               <CardContent className="p-6">
@@ -67,7 +66,7 @@ export function ImpactGallery() {
                 <CardDescription className="mt-2">{it.desc}</CardDescription>
                 <div className="mt-5">
                   <Link href={it.href}>
-                    <Button className="w-full" variant={it.tag === "Children" ? "primary" : "secondary"}>
+                    <Button className="w-full" variant={it.tag -eq "Children" ? "primary" : "secondary"}>
                       Learn more
                     </Button>
                   </Link>
@@ -78,10 +77,9 @@ export function ImpactGallery() {
         </div>
 
         <p className="mt-4 text-xs text-mutedInk">
-          Photos are placeholders for now — we can replace them with your real Uganda photos anytime.
+          Put your three real Uganda photos in public/photos as children.jpg, women.jpg, and youth.jpg.
         </p>
       </Container>
     </section>
   );
 }
-
