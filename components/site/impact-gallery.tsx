@@ -50,7 +50,7 @@ export function ImpactGallery() {
 
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           {items.map((it) => (
-            <Card key={it.title} className="overflow-hidden">
+            <Card key={it.title} className="overflow-hidden vbs-hover-lift">
               <div className="relative h-44 sm:h-52">
                 <Image
                   src={it.img}

@@ -22,7 +22,7 @@ export function ImpactStats() {
 
         <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((s) => (
-            <div key={s.label} className="rounded-3xl border border-black/10 bg-black/[0.02] p-6">
+            <div key={s.label} className="rounded-3xl border vbs-hover-lift border-black/10 bg-black/[0.02] p-6">
               <div className="text-2xl font-semibold tracking-tight">{s.value}</div>
               <div className="mt-2 text-xs text-mutedInk">{s.label}</div>
             </div>

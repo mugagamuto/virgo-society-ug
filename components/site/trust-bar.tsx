@@ -13,7 +13,7 @@ export function TrustBar() {
       <Container className="py-6">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {items.map((it) => (
-            <div key={it.k} className="rounded-2xl border border-black/10 bg-black/[0.02] p-4">
+            <div key={it.k} className="rounded-2xl border vbs-hover-lift border-black/10 bg-black/[0.02] p-4">
               <div className="text-sm font-semibold tracking-tight">{it.k}</div>
               <div className="mt-1 text-xs text-mutedInk">{it.v}</div>
             </div>

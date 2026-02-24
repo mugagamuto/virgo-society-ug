@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 
 export function HomeHero() {
   return (
-    <section className="bg-white">
+    <section className="bg-white vbs-animate-fade-up">
       <Container className="py-12 md:py-16">
         <div className="grid gap-10 lg:grid-cols-[1.2fr_.8fr] lg:items-center">
           <div>
