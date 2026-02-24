@@ -9,7 +9,7 @@ export default function AboutPage() {
       <PageHero
         eyebrow="About Virgo"
         title="A practical pathway to sustainable incomes."
-        subtitle="Virgo Society Uganda empowers registered youth and women groups through financial training, mentorship, and access to affordable low-interest loans, while supporting children and strengthening community resilience."
+        subtitle="Virgo Building Society Uganda empowers registered youth and women groups through financial training, mentorship, and access to affordable low-interest loans, while supporting children and strengthening community resilience."
       />
 
       <Container className="py-12 md:py-16">
@@ -67,3 +67,4 @@ export default function AboutPage() {
     </>
   );
 }
+

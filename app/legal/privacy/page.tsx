@@ -12,7 +12,7 @@ export default function PrivacyPage() {
       <Container className="py-12 md:py-16">
         <div className="rounded-3xl border border-black/10 bg-white p-7 shadow-soft text-sm text-mutedInk space-y-4">
           <p>
-            Virgo Society Uganda respects your privacy. This template is provided for convenience and must be reviewed by your legal advisor.
+            Virgo Building Society Uganda respects your privacy. This template is provided for convenience and must be reviewed by your legal advisor.
           </p>
           <p>
             If you add analytics, forms, or payment providers, update this page to explain what data is collected, why, and how it is stored.
@@ -22,3 +22,4 @@ export default function PrivacyPage() {
     </>
   );
 }
+

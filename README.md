@@ -1,6 +1,6 @@
-# Virgo Society Uganda — Next.js Website
+# Virgo Building Society Uganda — Next.js Website
 
-Super clean, mobile-first website starter for Virgo Society Uganda.
+Super clean, mobile-first website starter for Virgo Building Society Uganda.
 
 ## Pages included
 - `/` Home
@@ -32,3 +32,4 @@ Open http://localhost:3000
 - Site name/contact: `content/site.ts`
 - Home metrics + hero text: `app/page.tsx`
 - Blog sample posts: `content/blog/posts.ts`
+
