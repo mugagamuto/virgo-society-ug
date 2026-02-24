@@ -3,6 +3,7 @@ import "./globals.css";
 import { Header } from "@/components/site/header";
 import { Footer } from "@/components/site/footer";
 import { site } from "@/content/site";
+import { WhatsAppButton } from "@/components/global/whatsapp-button";
 
 export const metadata: Metadata = {
   title: {
@@ -27,9 +28,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Header />
         <main className="min-h-[70vh]">{children}</main>
         <Footer />
+  <WhatsAppButton />
       </body>
     </html>
   );
 }
+
+
+
 
 
