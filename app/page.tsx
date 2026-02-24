@@ -72,9 +72,6 @@ export default function HomePage() {
                 <Stat label="Members trained" value="3,500+" />
                 <Stat label="Loan repayment" value="92%" />
               </div>
-              <p className="mt-2 text-xs text-mutedInk">
-                Replace these numbers with your real metrics anytime in <code className="px-1 py-0.5 rounded bg-black/5">app/page.tsx</code>.
-              </p>
             </FadeIn>
 
             <FadeIn delay={0.08} className="relative">
@@ -209,6 +206,7 @@ function ProgramCard({
     </Card>
   );
 }
+
 
 
 
