@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, HandHeart, ShieldCheck, Users } from "lucide-react";
 import { Container } from "@/components/site/container";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,17 @@ export default function HomePage() {
       <section className="relative overflow-hidden">
         <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-brand-200/40 blur-3xl" />
         <div className="absolute -bottom-28 -right-28 h-80 w-80 rounded-full bg-sun-200/40 blur-3xl" />
+
+        <div className="absolute inset-0 -z-10">
+          <Image
+            src="/images/hero.jpg"
+            alt="Virgo Building Society Uganda community empowerment"
+            fill
+            priority
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-white/80" />
+        </div>
 
         <Container className="py-14 md:py-20">
           <div className="grid gap-10 md:grid-cols-2 md:items-center">
@@ -132,9 +144,9 @@ export default function HomePage() {
           </div>
 
           <div className="mt-8 grid gap-4 md:grid-cols-3">
-            <ProgramCard title="Financial Skills Bootcamps" tag="Training" desc="Budgeting, saving, record-keeping, pricing and basic tax awareness." />
-            <ProgramCard title="Youth & Women Enterprise Support" tag="Enterprise" desc="Mentorship, market access, and tools to grow micro-businesses." />
-            <ProgramCard title="Child Support & Welfare" tag="Children" desc="School support and essential needs linked to household resilience." />
+            <ProgramCard title="Financial Skills Bootcamps" tag="Training" desc="Budgeting, saving, record-keeping, pricing and basic tax awareness." imageSrc="/images/training.jpg" />
+            <ProgramCard title="Youth & Women Enterprise Support" tag="Enterprise" desc="Mentorship, market access, and tools to grow micro-businesses." imageSrc="/images/loans.jpg" />
+            <ProgramCard title="Child Support & Welfare" tag="Children" desc="School support and essential needs linked to household resilience." imageSrc="/images/children.jpg" />
           </div>
         </Container>
       </section>
