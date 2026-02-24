@@ -64,12 +64,27 @@ export function ApplicationForm() {
     return encodeURIComponent(lines.join("\n"));
   }, [data]);
 
-  const mailto = useMemo(() => {
-    // TODO: replace with your official email
-    const to = "info@yourdomain.com";
-    return "mailto:" + to + "?subject=" + subject + "&body=" + body;
-  }, [subject, body]);
-
+    const whatsappUrl = useMemo(() => {
+    const phone = "256755077903";
+    const msgLines = [
+      "Support Application (Website)",
+      "",
+      "Organization / Group Name: " + (data.orgName || "-"),
+      "Contact Person: " + (data.contactName || "-"),
+      "Phone: " + (data.phone || "-"),
+      "Email: " + (data.email || "-"),
+      "District: " + (data.district || "-"),
+      "Type: " + (data.orgType || "-"),
+      "Registered: " + (data.registered || "-"),
+      "Members (approx): " + (data.members || "-"),
+      "Support Needed: " + (data.supportNeeds || "-"),
+      "",
+      "Message:",
+      data.message || "-",
+    ];
+    const text = encodeURIComponent(msgLines.join("\n"));
+    return "https://wa.me/" + phone + "?text=" + text;
+  }, [data]);
   const requiredOk =
     data.orgName.trim().length > 1 &&
     data.contactName.trim().length > 1 &&
@@ -188,7 +203,7 @@ export function ApplicationForm() {
             <Button
               disabled={!requiredOk}
               onClick={() => {
-                window.location.href = mailto;
+                window.location.href = whatsappUrl;
                 setSent(true);
               }}
             >
