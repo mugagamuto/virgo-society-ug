@@ -66,7 +66,7 @@ export function ImpactGallery() {
                 <CardDescription className="mt-2">{it.desc}</CardDescription>
                 <div className="mt-5">
                   <Link href={it.href}>
-                    <Button className="w-full" variant={it.tag === "Children" ? "primary" : "secondary"}>
+                    <Button className="w-full" variant={it.tag === "Children" ? "default" : "secondary"}>
                       Learn more
                     </Button>
                   </Link>
@@ -77,7 +77,7 @@ export function ImpactGallery() {
         </div>
 
         <p className="mt-4 text-xs text-mutedInk">
-          Put your three real Uganda photos in public/photos as children.jpg, women.jpg, and youth.jpg.
+          Photos are loaded from public/photos (children.jpg, women.jpg, youth.jpg).
         </p>
       </Container>
     </section>
