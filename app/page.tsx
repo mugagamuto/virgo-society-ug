@@ -179,15 +179,31 @@ function Step({ n, title, desc }: { n: string; title: string; desc: string }) {
   );
 }
 
-function ProgramCard({ title, desc, tag }: { title: string; desc: string; tag: string }) {
+function ProgramCard({
+  title,
+  desc,
+  tag,
+  imageSrc,
+}: {
+  title: string;
+  desc: string;
+  tag: string;
+  imageSrc: string;
+}) {
   return (
-    <Card>
+    <Card className="overflow-hidden">
+      <div className="relative h-40 w-full">
+        <Image src={imageSrc} alt={title} fill className="object-cover" />
+      </div>
       <CardContent className="p-7">
         <Badge>{tag}</Badge>
         <div className="mt-3 text-lg font-semibold tracking-tight">{title}</div>
         <p className="mt-2 text-sm text-mutedInk">{desc}</p>
         <div className="mt-5">
-          <Link href="/programs" className="inline-flex items-center text-sm font-medium text-brand-700 hover:text-brand-800">
+          <Link
+            href="/programs"
+            className="inline-flex items-center text-sm font-medium text-brand-700 hover:text-brand-800"
+          >
             Learn more <ArrowRight className="ml-2" size={16} />
           </Link>
         </div>
@@ -195,4 +211,5 @@ function ProgramCard({ title, desc, tag }: { title: string; desc: string; tag: s
     </Card>
   );
 }
+
 
