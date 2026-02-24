@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, HandHeart, ShieldCheck, Users } from "lucide-react";
 import { Container } from "@/components/site/container";
@@ -48,7 +48,7 @@ export default function HomePage() {
         <Container className="py-14 md:py-20">
           <div className="grid gap-10 md:grid-cols-2 md:items-center">
             <FadeIn>
-              <Badge>Uganda • Youth • Women • Children</Badge>
+              <Badge>Uganda â€¢ Youth â€¢ Women â€¢ Children</Badge>
               <h1 className="mt-4 text-4xl md:text-5xl font-semibold tracking-tight">
                 Building sustainable incomes for communities that deserve a real chance.
               </h1>
@@ -85,7 +85,7 @@ export default function HomePage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-sm font-semibold">How Virgo works</div>
-                      <div className="text-sm text-mutedInk mt-1">Simple pathway from training → capital → growth.</div>
+                      <div className="text-sm text-mutedInk mt-1">Simple pathway from training â†’ capital â†’ growth.</div>
                     </div>
                     <Badge>Community-led</Badge>
                   </div>
@@ -195,3 +195,4 @@ function ProgramCard({ title, desc, tag }: { title: string; desc: string; tag: s
     </Card>
   );
 }
+
