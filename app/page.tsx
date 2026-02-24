@@ -8,8 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { FadeIn } from "@/components/motion/fade-in";
 import { CtaBand } from "@/components/site/cta-band";
 import { site } from "@/content/site";
+import { StoriesSlider } from "@/components/site/stories-slider";
 
 import { ImpactGallery } from "@/components/site/impact-gallery";
+import { StoriesSlider } from "@/components/site/stories-slider";
 const highlights = [
   {
     icon: Users,
@@ -105,6 +107,8 @@ export default function HomePage() {
       </section>
 
       <ImpactGallery />
+
+      <StoriesSlider />
 
 
       <section className="py-12 md:py-16">
@@ -210,6 +214,7 @@ function ProgramCard({
     </Card>
   );
 }
+
 
 
 

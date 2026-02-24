@@ -1,4 +1,4 @@
-ï»¿import Image from "next/image";
+import Image from "next/image";
 import Link from "next/link";
 import { Container } from "@/components/site/container";
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
@@ -8,24 +8,24 @@ import { Button } from "@/components/ui/button";
 const items = [
   {
     tag: "Children",
-    title: "Support childrenâ€™s education",
+    title: "Support children’s education",
     desc: "School support, essential supplies, and targeted welfare that keeps children learning.",
     href: "/donate",
-    img: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1600&q=80",
+    img: "/photos/children.jpg",
   },
   {
     tag: "Women",
     title: "Women group training & enterprise",
     desc: "Practical financial skills, savings culture, and support to grow group-led businesses.",
     href: "/programs",
-    img: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1600&q=80",
+    img: "/photos/children.jpg",
   },
   {
     tag: "Youth",
     title: "Youth skills & startups",
     desc: "Mentorship, startup readiness, and tools to help youth turn ideas into stable income.",
     href: "/programs",
-    img: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1600&q=80",
+    img: "/photos/children.jpg",
   },
 ];
 
@@ -78,9 +78,10 @@ export function ImpactGallery() {
         </div>
 
         <p className="mt-4 text-xs text-mutedInk">
-          Photos are placeholders for now â€” we can replace them with your real Uganda photos anytime.
+          Photos are placeholders for now — we can replace them with your real Uganda photos anytime.
         </p>
       </Container>
     </section>
   );
 }
+
