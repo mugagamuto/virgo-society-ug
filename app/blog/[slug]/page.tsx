@@ -15,7 +15,7 @@ export default async function BlogPostPage({
 
   return (
     <>
-      <PageHero eyebrow={`Blog • ${post.category}`} title={post.title} subtitle={post.excerpt} />
+      <PageHero eyebrow={Blog â€¢ } title={post.title} subtitle={post.excerpt} />
 
       <Container className="py-12 md:py-16">
         <article className="prose max-w-none">
@@ -42,4 +42,3 @@ export default async function BlogPostPage({
     </>
   );
 }
-
