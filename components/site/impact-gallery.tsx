@@ -66,7 +66,7 @@ export function ImpactGallery() {
                 <CardDescription className="mt-2">{it.desc}</CardDescription>
                 <div className="mt-5">
                   <Link href={it.href}>
-                    <Button className="w-full" variant={it.tag -eq "Children" ? "primary" : "secondary"}>
+                    <Button className="w-full" variant={it.tag === "Children" ? "primary" : "secondary"}>
                       Learn more
                     </Button>
                   </Link>
