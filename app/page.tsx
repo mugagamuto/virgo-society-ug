@@ -9,6 +9,7 @@ import { FadeIn } from "@/components/motion/fade-in";
 import { CtaBand } from "@/components/site/cta-band";
 import { site } from "@/content/site";
 
+import { ImpactGallery } from "@/components/site/impact-gallery";
 const highlights = [
   {
     icon: Users,
@@ -102,6 +103,9 @@ export default function HomePage() {
           </div>
         </Container>
       </section>
+
+      <ImpactGallery />
+
 
       <section className="py-12 md:py-16">
         <Container>
@@ -206,6 +210,9 @@ function ProgramCard({
     </Card>
   );
 }
+
+
+
 
 
 
