@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { FadeIn } from "@/components/motion/fade-in";
 import { CtaBand } from "@/components/site/cta-band";
 import { site } from "@/content/site";
-import { StoriesSlider } from "@/components/site/stories-slider";
 
 import { ImpactGallery } from "@/components/site/impact-gallery";
 import { StoriesSlider } from "@/components/site/stories-slider";
@@ -214,6 +213,7 @@ function ProgramCard({
     </Card>
   );
 }
+
 
 
 
