@@ -16,12 +16,14 @@
     "next": "^16.1.6",
     "react": "19.0.0",
     "react-dom": "19.0.0",
+    "react-easy-crop": "^5.5.6",
     "tailwind-merge": "^2.5.5"
   },
   "devDependencies": {
     "@types/node": "^20.11.30",
     "@types/react": "^18.2.79",
     "@types/react-dom": "^18.2.25",
+    "@types/react-easy-crop": "^1.16.0",
     "autoprefixer": "^10.4.19",
     "eslint": "^9.39.3",
     "eslint-config-next": "^16.1.6",
