@@ -6,6 +6,7 @@ import { createClient } from "@supabase/supabase-js";
 import { Container } from "@/components/site/container";
 import { PageHero } from "@/components/site/page-hero";
 import { CtaBand } from "@/components/site/cta-band";
+import { ImpactGallery } from "@/components/site/impact-gallery";
 
 type Section =
   | { type: "hero"; eyebrow?: string; title: string; subtitle?: string }
@@ -102,7 +103,7 @@ export default async function HomePage() {
             <div className="rounded-3xl border border-black/10 bg-white p-8 shadow-sm">
               <div className="text-lg font-semibold tracking-tight">Homepage content not set yet</div>
               <p className="mt-2 text-sm text-mutedInk">
-                Go to <Link className="underline" href="/admin/pages/home">Admin Ã¢â€ â€™ Pages Ã¢â€ â€™ Home</Link> and add sections JSON.
+                Go to <Link className="underline" href="/admin/pages/home">Admin ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ Pages ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ Home</Link> and add sections JSON.
               </p>
             </div>
           </Container>
