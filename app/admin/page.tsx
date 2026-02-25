@@ -1,5 +1,5 @@
-export const dynamic = "force-dynamic";
 "use client";
+export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -93,7 +93,7 @@ export default function AdminHome() {
           <div className="text-sm font-semibold">Pages</div>
 
           {loading ? (
-            <div className="mt-4 text-sm text-mutedInk">Loadingâ€¦</div>
+            <div className="mt-4 text-sm text-mutedInk">LoadingÃ¢â‚¬Â¦</div>
           ) : (
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               {pages.map((p) => (
