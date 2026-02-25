@@ -1,84 +1,93 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Container } from "@/components/site/container";
-import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 
-const items = [
+type Item = {
+  title: string;
+  subtitle: string;
+  src: string;
+  href: string;
+};
+
+const items: Item[] = [
   {
-    tag: "Children",
-    title: "Support children's education",
-    desc: "School support, essential supplies, and targeted welfare that keeps children learning.",
-    href: "/donate",
-    img: "/photos/children.jpg",
+    title: "Children Support",
+    subtitle: "Community programs that improve wellbeing and opportunity.",
+    src: "/photos/children.jpg",
+    href: "/impact",
   },
   {
-    tag: "Women",
-    title: "Women group training and enterprise",
-    desc: "Practical financial skills, savings culture, and support to grow group-led businesses.",
+    title: "Women Groups",
+    subtitle: "Training, mentorship, and access to responsible finance.",
+    src: "/photos/women.jpg",
     href: "/programs",
-    img: "/photos/women.jpg",
   },
   {
-    tag: "Youth",
-    title: "Youth skills and startups",
-    desc: "Mentorship, startup readiness, and tools to help youth turn ideas into stable income.",
-    href: "/programs",
-    img: "/photos/youth.jpg",
+    title: "Youth Startups",
+    subtitle: "Skills-building and low-interest support for income growth.",
+    src: "/photos/youth.jpg",
+    href: "/apply",
   },
 ];
 
 export function ImpactGallery() {
   return (
-    <section className="py-10 md:py-14 border-y border-black/5 bg-white">
+    <section className="py-12 md:py-16">
       <Container>
-        <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+        <div className="flex items-end justify-between gap-4">
           <div>
-            <Badge>Real impact areas</Badge>
-            <h2 className="mt-3 text-2xl md:text-3xl font-semibold tracking-tight">
-              Clear focus, visible outcomes
-            </h2>
-            <p className="mt-2 text-sm md:text-base text-mutedInk max-w-2xl">
-              We support children, women groups, and youth-led startups through training, mentorship, and affordable capital.
+            <div className="text-xs font-semibold tracking-widest text-mutedInk uppercase">Impact photos</div>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight md:text-3xl">Real work. Real people.</h2>
+            <p className="mt-2 max-w-2xl text-sm text-mutedInk md:text-base">
+              These are the communities we serve — youth, women, and children — through training, mentoring, and responsible lending.
             </p>
           </div>
-          <Link href="/impact" className="mt-3 md:mt-0">
-            <Button variant="secondary">View impact</Button>
+
+          <Link
+            href="/impact"
+            className="hidden rounded-2xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold hover:bg-black/[0.02] md:inline-flex"
+          >
+            View Impact
           </Link>
         </div>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-3">
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
           {items.map((it) => (
-            <Card key={it.title} className="overflow-hidden vbs-hover-lift">
-              <div className="relative h-44 sm:h-52">
+            <Link
+              key={it.title}
+              href={it.href}
+              className="group relative overflow-hidden rounded-3xl border border-black/10 bg-white shadow-sm"
+            >
+              <div className="relative aspect-[4/3]">
                 <Image
-                  src={it.img}
+                  src={it.src}
                   alt={it.title}
                   fill
-                  className="object-cover"
                   sizes="(max-width: 768px) 100vw, 33vw"
+                  className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                  priority={false}
                 />
               </div>
-              <CardContent className="p-6">
-                <Badge>{it.tag}</Badge>
-                <CardTitle className="mt-3">{it.title}</CardTitle>
-                <CardDescription className="mt-2">{it.desc}</CardDescription>
-                <div className="mt-5">
-                  <Link href={it.href}>
-                    <Button className="w-full" variant={it.tag === "Children" ? "primary" : "secondary"}>
-                      Learn more
-                    </Button>
-                  </Link>
+
+              <div className="p-5">
+                <div className="text-base font-semibold tracking-tight">{it.title}</div>
+                <div className="mt-1 text-sm text-mutedInk">{it.subtitle}</div>
+                <div className="mt-4 text-sm font-semibold">
+                  Learn more <span className="inline-block transition-transform duration-300 group-hover:translate-x-0.5">→</span>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </Link>
           ))}
         </div>
 
-        <p className="mt-4 text-xs text-mutedInk">
-          Photos are loaded from public/photos (children.jpg, women.jpg, youth.jpg).
-        </p>
+        <div className="mt-6 md:hidden">
+          <Link
+            href="/impact"
+            className="inline-flex w-full items-center justify-center rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold hover:bg-black/[0.02]"
+          >
+            View Impact
+          </Link>
+        </div>
       </Container>
     </section>
   );
