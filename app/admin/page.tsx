@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 "use client";
 
 import Link from "next/link";
@@ -92,7 +93,7 @@ export default function AdminHome() {
           <div className="text-sm font-semibold">Pages</div>
 
           {loading ? (
-            <div className="mt-4 text-sm text-mutedInk">Loading…</div>
+            <div className="mt-4 text-sm text-mutedInk">Loadingâ€¦</div>
           ) : (
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               {pages.map((p) => (

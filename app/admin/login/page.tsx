@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 "use client";
 
 import { useState } from "react";
@@ -51,7 +52,7 @@ export default function AdminLoginPage() {
               className="mt-2 w-full rounded-2xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-black/10"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
               type="password"
               required
             />
@@ -67,7 +68,7 @@ export default function AdminLoginPage() {
             disabled={loading}
             className="w-full rounded-2xl bg-emerald-700 px-4 py-3 font-semibold text-white hover:bg-emerald-800 disabled:opacity-60"
           >
-            {loading ? "Signing in…" : "Sign in"}
+            {loading ? "Signing inâ€¦" : "Sign in"}
           </button>
         </form>
 

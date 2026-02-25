@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 "use client";
 
 import { useEffect, useState } from "react";
@@ -44,7 +45,7 @@ export default function AdminSettings() {
     for (const r of rows) {
       await supabase.from("site_settings").upsert({ key: r.key, value: r.value, updated_at: new Date().toISOString() });
     }
-    setStatus("Saved ✅");
+    setStatus("Saved âœ…");
   }
 
   return (

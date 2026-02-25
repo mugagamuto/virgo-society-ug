@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -52,7 +53,7 @@ export default function AdminEditPage() {
       .eq("slug", slug);
 
     if (error) setStatus(error.message);
-    else setStatus("Saved ✅");
+    else setStatus("Saved âœ…");
   }
 
   return (
@@ -109,7 +110,7 @@ export default function AdminEditPage() {
             </div>
           )}
 
-          {loading && <div className="text-sm text-mutedInk">Loading…</div>}
+          {loading && <div className="text-sm text-mutedInk">Loadingâ€¦</div>}
         </div>
       </div>
     </AdminGuard>
