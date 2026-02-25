@@ -1,36 +1,64 @@
 import Image from "next/image";
 import Link from "next/link";
+import { createClient } from "@supabase/supabase-js";
 import { Container } from "@/components/site/container";
 
 type Item = {
+  id?: string;
+  sort_order?: number;
   title: string;
   subtitle: string;
-  src: string;
+  image_url: string;
   href: string;
+  is_active: boolean;
 };
 
-const items: Item[] = [
+const fallback: Item[] = [
   {
     title: "Children Support",
     subtitle: "Community programs that improve wellbeing and opportunity.",
-    src: "/photos/children.jpg",
+    image_url: "/photos/children.jpg",
     href: "/impact",
+    is_active: true,
+    sort_order: 1,
   },
   {
     title: "Women Groups",
     subtitle: "Training, mentorship, and access to responsible finance.",
-    src: "/photos/women.jpg",
+    image_url: "/photos/women.jpg",
     href: "/programs",
+    is_active: true,
+    sort_order: 2,
   },
   {
     title: "Youth Startups",
     subtitle: "Skills-building and low-interest support for income growth.",
-    src: "/photos/youth.jpg",
+    image_url: "/photos/youth.jpg",
     href: "/apply",
+    is_active: true,
+    sort_order: 3,
   },
 ];
 
-export function ImpactGallery() {
+async function loadItems(): Promise<Item[]> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return fallback;
+
+  const supabase = createClient(url, key);
+  const { data, error } = await supabase
+    .from("home_gallery_items")
+    .select("id, sort_order, title, subtitle, image_url, href, is_active")
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true });
+
+  if (error || !data) return fallback;
+  return data as Item[];
+}
+
+export async function ImpactGallery() {
+  const items = await loadItems();
+
   return (
     <section className="py-12 md:py-16">
       <Container>
@@ -54,18 +82,17 @@ export function ImpactGallery() {
         <div className="mt-6 grid gap-4 md:grid-cols-3">
           {items.map((it) => (
             <Link
-              key={it.title}
+              key={it.id ?? it.title}
               href={it.href}
               className="group relative overflow-hidden rounded-3xl border border-black/10 bg-white shadow-sm"
             >
               <div className="relative aspect-[4/3]">
                 <Image
-                  src={it.src}
+                  src={it.image_url}
                   alt={it.title}
                   fill
                   sizes="(max-width: 768px) 100vw, 33vw"
                   className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                  priority={false}
                 />
               </div>
 
