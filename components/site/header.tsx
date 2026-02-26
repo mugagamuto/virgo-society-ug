@@ -19,8 +19,8 @@ export function Header() {
 
         <div className="hidden md:flex items-center gap-6">
           <NavLinks />
-          <Link href="/donate">
-            <Button size="sm">Support a Group</Button>
+          <Link href="/donors">
+            <Button size="sm">Fund a Project</Button>
           </Link>
         </div>
 
@@ -46,8 +46,8 @@ export function Header() {
                 {item.label}
               </Link>
             ))}
-            <Link href="/donate" onClick={() => setOpen(false)}>
-              <Button className="w-full mt-2">Donate</Button>
+            <Link href="/donors" onClick={() => setOpen(false)}>
+              <Button className="w-full mt-2">Fund a Project</Button>
             </Link>
           </div>
         </Container>
@@ -55,6 +55,7 @@ export function Header() {
     </header>
   );
 }
+
 
 
 
