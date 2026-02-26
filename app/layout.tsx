@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import "./globals.css";
+import Navbar from "@/components/Navbar";
 import { Header } from "@/components/site/header";
 import { Footer } from "@/components/site/footer";
 import { site } from "@/content/site";
@@ -8,7 +9,7 @@ import { WhatsAppButton } from "@/components/global/whatsapp-button";
 export const metadata: Metadata = {
   title: {
     default: site.name,
-    template: `%s — ${site.name}`,
+    template: `%s â€” ${site.name}`,
   },
   description: site.description,
   openGraph: {
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
+        <Navbar />
         <Header />
         <main className="min-h-[70vh]">{children}</main>
         <Footer />
@@ -33,6 +35,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
+
+
 
 
 
