@@ -5,6 +5,7 @@ export const navItems = [
   { href: "/about", label: "About" },
   { href: "/programs", label: "Programs" },
   { href: "/loans", label: "Loans" },
+  { href: "/members/login", label: "Member Login" },
   { href: "/impact", label: "Impact" },
   { href: "/donate", label: "Donate" },
   { href: "/blog", label: "Blog" },
