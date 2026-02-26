@@ -13,7 +13,7 @@ export default function MemberLoginPage() {
   const redirectTo = useMemo(() => {
     // after clicking the magic link, send them to dashboard
     if (typeof window === "undefined") return undefined;
-    return `${window.location.origin}/members/dashboard`;
+    return `${window.location.origin}/members/callback`;
   }, []);
 
   async function sendLink(e: React.FormEvent) {
@@ -90,3 +90,4 @@ export default function MemberLoginPage() {
     </main>
   );
 }
+
