@@ -7,7 +7,7 @@ export const navItems = [
   { href: "/loans", label: "Loans" },
   { href: "/members/login", label: "Member Login" },
   { href: "/impact", label: "Impact" },
-  { href: "/donate", label: "Donate" },
+  { href: "/donors", label: "Donate" },
   { href: "/blog", label: "Blog" },
   { href: "/contact", label: "Contact" },
 ] as const;
@@ -34,3 +34,4 @@ export function NavLinks({ className }: { className?: string }) {
     </nav>
   );
 }
+
