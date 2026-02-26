@@ -118,7 +118,7 @@ export default function AdminMemberDetail({ params }: { params: { id: string } }
     const next: MemberStatus = row.status === "active" ? "suspended" : "active";
 
     try {
-      const { error } = await (supabase as any)`r`n      .from("members")`r`n      .update({ status: next } as any)
+      const { error } = await (supabase as any)      .from("members")      .update({ status: next } as any)
         .eq("user_id", row.user_id);
 
       setSaving(false);
