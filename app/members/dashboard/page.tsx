@@ -1,58 +1,175 @@
 ﻿"use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase-browser";
 
-type Profile = {
-  full_name: string | null;
-  phone: string | null;
-  district: string | null;
+type AppRow = {
+  id: string;
+  status: "pending" | "approved" | "rejected" | string;
+  admin_note: string | null;
+  created_at: string;
+  updated_at: string;
 };
 
-export default function MemberDashboardPage() {
+type DocRow = {
+  id: string;
+  doc_type: string;
+  file_path: string;
+  original_name: string | null;
+  created_at: string;
+};
+
+const DOC_TYPES = [
+  { value: "registration_form", label: "Registration Form (Scanned PDF/Image)" },
+  { value: "nin", label: "NIN / ID Document" },
+  { value: "photo", label: "Passport Photo" },
+  { value: "other", label: "Other Supporting Document" },
+] as const;
+
+function Badge({ status }: { status: string }) {
+  const cls =
+    status === "approved"
+      ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+      : status === "rejected"
+      ? "bg-red-50 text-red-800 border-red-200"
+      : "bg-amber-50 text-amber-800 border-amber-200";
+  return <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${cls}`}>{status.toUpperCase()}</span>;
+}
+
+export default function MemberDashboard() {
   const [loading, setLoading] = useState(true);
-  const [email, setEmail] = useState<string | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [msg, setMsg] = useState<string | null>(null);
 
-  useEffect(() => {
-    let mounted = true;
+  const [appRow, setAppRow] = useState<AppRow | null>(null);
+  const [docs, setDocs] = useState<DocRow[]>([]);
 
-    async function load() {
-      const { data: auth } = await supabase.auth.getUser();
-      const user = auth.user;
+  const [docType, setDocType] = useState<(typeof DOC_TYPES)[number]["value"]>("registration_form");
+  const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
-      if (!user) {
-        window.location.href = "/members/login";
-        return;
-      }
+  const formUrl = "/forms/virgo-member-registration-form.pdf";
 
-      const { data: prof } = await supabase
-        .from("member_profiles")
-        .select("full_name, phone, district")
-        .eq("user_id", user.id)
-        .single();
+  const statusLine = useMemo(() => {
+    if (!appRow) return null;
+    if (appRow.status === "approved") return "✅ Your application has been approved.";
+    if (appRow.status === "rejected") return "❌ Your application was rejected. See note below.";
+    return "⏳ Your application is pending review.";
+  }, [appRow]);
 
-      if (!mounted) return;
-      setEmail(user.email ?? null);
-      setProfile((prof as Profile) ?? null);
-      setLoading(false);
+  async function load() {
+    setLoading(true);
+    setMsg(null);
+
+    const { data: auth } = await supabase.auth.getUser();
+    const user = auth.user;
+    if (!user) {
+      window.location.href = "/members/login";
+      return;
     }
 
+    // get or create application row for this user
+    const { data: existing, error: selErr } = await supabase
+      .from("support_applications")
+      .select("id,status,admin_note,created_at,updated_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (selErr) {
+      setLoading(false);
+      setMsg(selErr.message);
+      return;
+    }
+
+    let app = existing as AppRow | null;
+
+    if (!app) {
+      const { data: created, error: insErr } = await supabase
+        .from("support_applications")
+        .insert({ user_id: user.id, email: user.email })
+        .select("id,status,admin_note,created_at,updated_at")
+        .single();
+
+      if (insErr) {
+        setLoading(false);
+        setMsg(insErr.message);
+        return;
+      }
+      app = created as AppRow;
+    }
+
+    setAppRow(app);
+
+    const { data: docRows, error: docErr } = await supabase
+      .from("application_documents")
+      .select("id,doc_type,file_path,original_name,created_at")
+      .eq("application_id", app.id)
+      .order("created_at", { ascending: false });
+
+    if (docErr) {
+      setLoading(false);
+      setMsg(docErr.message);
+      return;
+    }
+
+    setDocs((docRows ?? []) as DocRow[]);
+    setLoading(false);
+  }
+
+  useEffect(() => {
     load();
-    return () => {
-      mounted = false;
-    };
   }, []);
 
-  if (loading) {
-    return (
-      <main className="min-h-screen bg-white">
-        <div className="mx-auto max-w-4xl px-4 py-10">
-          <div className="rounded-3xl border p-8">Loading your dashboard…</div>
-        </div>
-      </main>
-    );
+  async function uploadDoc(e: React.FormEvent) {
+    e.preventDefault();
+    setMsg(null);
+
+    if (!appRow) return setMsg("Application not ready yet. Refresh.");
+    if (!file) return setMsg("Choose a file to upload.");
+
+    const { data: auth } = await supabase.auth.getUser();
+    const user = auth.user;
+    if (!user) return (window.location.href = "/members/login");
+
+    const ext = file.name.split(".").pop() || "bin";
+    const safeName = file.name.replace(/[^\w.\-() ]/g, "_");
+    const path = `applications/${appRow.id}/${Date.now()}-${safeName}`;
+
+    setUploading(true);
+
+    const { error: upErr } = await supabase.storage
+      .from("member-docs")
+      .upload(path, file, { upsert: false, contentType: file.type || undefined });
+
+    if (upErr) {
+      setUploading(false);
+      return setMsg(upErr.message);
+    }
+
+    const { error: insErr } = await supabase.from("application_documents").insert({
+      application_id: appRow.id,
+      user_id: user.id,
+      doc_type: docType,
+      file_path: path,
+      original_name: file.name,
+    });
+
+    setUploading(false);
+
+    if (insErr) return setMsg(insErr.message);
+
+    setFile(null);
+    setMsg("✅ Uploaded successfully.");
+    load();
+  }
+
+  async function downloadDoc(path: string) {
+    setMsg(null);
+    const { data, error } = await supabase.storage.from("member-docs").createSignedUrl(path, 60);
+    if (error) return setMsg(error.message);
+    window.open(data.signedUrl, "_blank");
   }
 
   return (
@@ -61,49 +178,127 @@ export default function MemberDashboardPage() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Member Dashboard</h1>
-            <p className="mt-1 text-sm text-neutral-600">
-              Signed in as <span className="font-medium">{email}</span>
-            </p>
+            <p className="mt-1 text-sm text-neutral-600">Download the form, upload your documents, and track your status.</p>
           </div>
-
-          <Link
-            href="/members/logout"
-            className="rounded-xl border px-4 py-2 text-sm font-medium hover:bg-neutral-50"
-          >
-            Logout
-          </Link>
+          <Link href="/" className="text-sm text-neutral-600 hover:underline">← Back to website</Link>
         </div>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border p-5">
-            <div className="text-sm font-medium">Profile</div>
-            <div className="mt-2 text-sm text-neutral-700">
-              <div><span className="text-neutral-500">Name:</span> {profile?.full_name ?? "—"}</div>
-              <div><span className="text-neutral-500">Phone:</span> {profile?.phone ?? "—"}</div>
-              <div><span className="text-neutral-500">District:</span> {profile?.district ?? "—"}</div>
-            </div>
-          </div>
+        {loading ? (
+          <div className="mt-8 rounded-2xl border p-6 text-sm text-neutral-600">Loading…</div>
+        ) : (
+          <>
+            <section className="mt-8 grid gap-6 md:grid-cols-3">
+              <div className="rounded-3xl border p-6 shadow-sm md:col-span-2">
+                <div className="flex items-center justify-between gap-3">
+                  <h2 className="text-lg font-semibold">Application Status</h2>
+                  {appRow ? <Badge status={appRow.status} /> : null}
+                </div>
 
-          <div className="rounded-2xl border p-5">
-            <div className="text-sm font-medium">Project / Support status</div>
-            <p className="mt-2 text-sm text-neutral-600">
-              Next step: we’ll show your applications + statuses (submitted/approved/etc).
-            </p>
-            <Link href="/apply" className="mt-3 inline-block text-sm font-medium text-emerald-700 hover:underline">
-              Apply for support →
-            </Link>
-          </div>
+                <p className="mt-3 text-sm text-neutral-700">{statusLine}</p>
 
-          <div className="rounded-2xl border p-5">
-            <div className="text-sm font-medium">Documents</div>
-            <p className="mt-2 text-sm text-neutral-600">
-              Next step: upload scanned forms + receipts for approval.
-            </p>
-            <span className="mt-3 inline-block text-xs rounded-full bg-neutral-100 px-3 py-1">
-              Upload UI next
-            </span>
-          </div>
-        </div>
+                {appRow?.admin_note ? (
+                  <div className="mt-4 rounded-2xl border bg-neutral-50 p-4 text-sm text-neutral-800">
+                    <div className="font-semibold">Admin Note</div>
+                    <div className="mt-1">{appRow.admin_note}</div>
+                  </div>
+                ) : null}
+
+                <div className="mt-4 flex flex-wrap gap-3 text-xs text-neutral-500">
+                  <span>Submitted: {appRow ? new Date(appRow.created_at).toLocaleString() : "-"}</span>
+                  <span>Last update: {appRow ? new Date(appRow.updated_at).toLocaleString() : "-"}</span>
+                </div>
+              </div>
+
+              <div className="rounded-3xl border p-6 shadow-sm">
+                <h2 className="text-lg font-semibold">Registration Form</h2>
+                <p className="mt-2 text-sm text-neutral-600">
+                  Download, print, fill, scan, then upload below.
+                </p>
+
+                <a
+                  href={formUrl}
+                  download
+                  className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-emerald-700 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-800"
+                >
+                  Download Form (PDF)
+                </a>
+
+                <p className="mt-3 text-xs text-neutral-500">
+                  Tip: You can scan with a phone using CamScanner / Google Drive scan.
+                </p>
+              </div>
+            </section>
+
+            <section className="mt-6 rounded-3xl border p-6 shadow-sm">
+              <h2 className="text-lg font-semibold">Upload Documents</h2>
+
+              <form onSubmit={uploadDoc} className="mt-4 grid gap-4 md:grid-cols-3">
+                <div className="md:col-span-1">
+                  <label className="text-sm font-medium">Document type</label>
+                  <select
+                    className="mt-2 w-full rounded-xl border px-3 py-3 text-sm"
+                    value={docType}
+                    onChange={(e) => setDocType(e.target.value as any)}
+                  >
+                    {DOC_TYPES.map((d) => (
+                      <option key={d.value} value={d.value}>{d.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="text-sm font-medium">Choose file (PDF/JPG/PNG)</label>
+                  <input
+                    type="file"
+                    className="mt-2 w-full rounded-xl border px-3 py-3 text-sm"
+                    accept=".pdf,image/*"
+                    onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                  />
+                </div>
+
+                <div className="md:col-span-3">
+                  <button
+                    disabled={uploading}
+                    className="w-full rounded-xl bg-neutral-900 px-4 py-3 text-sm font-semibold text-white hover:bg-black disabled:opacity-60"
+                  >
+                    {uploading ? "Uploading…" : "Upload document"}
+                  </button>
+                </div>
+              </form>
+
+              <div className="mt-6">
+                <h3 className="text-sm font-semibold text-neutral-800">Your uploaded documents</h3>
+
+                {docs.length === 0 ? (
+                  <p className="mt-2 text-sm text-neutral-600">No documents uploaded yet.</p>
+                ) : (
+                  <div className="mt-3 divide-y rounded-2xl border">
+                    {docs.map((d) => (
+                      <div key={d.id} className="flex items-center justify-between gap-3 p-4">
+                        <div>
+                          <div className="text-sm font-medium">{d.doc_type}</div>
+                          <div className="text-xs text-neutral-500">
+                            {d.original_name ?? d.file_path} • {new Date(d.created_at).toLocaleString()}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => downloadDoc(d.file_path)}
+                          className="rounded-xl border px-3 py-2 text-sm hover:bg-neutral-50"
+                        >
+                          View
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {msg ? (
+                <p className="mt-4 rounded-xl bg-neutral-50 px-4 py-3 text-sm text-neutral-800 border">{msg}</p>
+              ) : null}
+            </section>
+          </>
+        )}
       </div>
     </main>
   );
