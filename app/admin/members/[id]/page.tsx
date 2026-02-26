@@ -72,7 +72,7 @@ export default function AdminMemberDetail({ params }: { params: { id: string } }
 
     try {
       const { data, error } = await supabase
-        .from<any>("members")
+        .from("members")
         .select("user_id,org_name,contact_name,phone,email,location,district,status,created_at")
         .eq("user_id", id)
         .single();
@@ -86,7 +86,7 @@ export default function AdminMemberDetail({ params }: { params: { id: string } }
       setRow(data as MemberRow);
 
       const { data: proj, error: projErr } = await supabase
-        .from<any>("projects")
+        .from("projects")
         .select("id,title,status,is_fundable,funded_ugx,created_at")
         .eq("org_name", (data as any).org_name)
         .order("created_at", { ascending: false });
@@ -119,7 +119,7 @@ export default function AdminMemberDetail({ params }: { params: { id: string } }
 
     try {
       const { error } = await supabase
-        .from<any>("members")
+        .from("members")
         .update({ status: next })
         .eq("user_id", row.user_id);
 
