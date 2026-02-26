@@ -76,7 +76,7 @@ export default function AdminApplicationDetailPage() {
       updated_at: new Date().toISOString(),
     };
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from("projects")
       .update(payload as any)
       .eq("id", id);
