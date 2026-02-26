@@ -1,118 +1,193 @@
-"use client";
-export const dynamic = "force-dynamic";
+﻿"use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useParams } from "next/navigation";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
-import { AdminGuard } from "@/components/admin/admin-guard";
+import React, { useEffect, useMemo, useState } from "react";
+import { supabase } from "@/lib/supabase-browser";
 
-export default function AdminEditPage() {
-  const params = useParams<{ slug: string }>();
-  const slug = params.slug;
+type PageRow = {
+  slug: string;
+  title: string;
+  content: any;
+  updated_at: string | null;
+};
 
-  const [title, setTitle] = useState("");
-  const [sectionsText, setSectionsText] = useState("[]");
-  const [status, setStatus] = useState<string | null>(null);
+export default function AdminPageEditor({ params }: { params: { slug: string } }) {
+  const slug = decodeURIComponent(params.slug || "");
+
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [ok, setOk] = useState<string | null>(null);
 
-  const jsonValid = useMemo(() => {
-    try { JSON.parse(sectionsText); return true; } catch { return false; }
-  }, [sectionsText]);
+  const [row, setRow] = useState<PageRow | null>(null);
+  const [title, setTitle] = useState("");
+  const [contentText, setContentText] = useState("");
+
+  const pretty = useMemo(() => {
+    try { return JSON.stringify(JSON.parse(contentText), null, 2); } catch { return contentText; }
+  }, [contentText]);
+
+  async function ensureAdmin() {
+    const { data } = await supabase.auth.getSession();
+    const session = data.session;
+    if (!session) {
+      window.location.href = "/admin/login";
+      return false;
+    }
+
+    const { data: adminRow, error } = await supabase
+      .from("admin_users")
+      .select("user_id")
+      .eq("user_id", session.user.id)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!adminRow) {
+      window.location.href = "/admin/login";
+      return false;
+    }
+    return true;
+  }
 
   async function load() {
     setLoading(true);
-    const { data, error } = await supabase.from("pages").select("*").eq("slug", slug).maybeSingle();
-    if (error) setStatus(error.message);
+    setErr(null);
+    setOk(null);
 
-    if (data) {
-      setTitle(data.title ?? "");
-      setSectionsText(JSON.stringify(data.sections ?? [], null, 2));
-    } else {
-      // create if missing
-      await supabase.from("pages").insert({ slug, title: slug, sections: [] });
-      setTitle(slug);
-      setSectionsText("[]");
+    try {
+      const isAdmin = await ensureAdmin();
+      if (!isAdmin) return;
+
+      const { data, error } = await supabase
+        .from("pages")
+        .select("slug,title,content,updated_at")
+        .eq("slug", slug)
+        .single();
+
+      if (error) throw error;
+
+      const r = data as PageRow;
+      setRow(r);
+      setTitle(r.title ?? "");
+      setContentText(JSON.stringify(r.content ?? {}, null, 2));
+    } catch (e: any) {
+      setErr(e?.message ?? "Failed to load page");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
-
-  useEffect(() => { load(); }, [slug]);
 
   async function save() {
-    setStatus(null);
-    if (!jsonValid) {
-      setStatus("Sections JSON is invalid. Fix the JSON then save.");
-      return;
+    if (!row) return;
+    setSaving(true);
+    setErr(null);
+    setOk(null);
+
+    try {
+      let parsed: any = null;
+      try {
+        parsed = contentText.trim() ? JSON.parse(contentText) : {};
+      } catch {
+        throw new Error("Content must be valid JSON.");
+      }
+
+      const { error } = await supabase
+        .from("pages")
+        .update({ title: title.trim() || row.title, content: parsed })
+        .eq("slug", row.slug);
+
+      if (error) throw error;
+
+      setOk("✅ Saved successfully.");
+      await load();
+    } catch (e: any) {
+      setErr(e?.message ?? "Save failed");
+    } finally {
+      setSaving(false);
     }
-
-    const sections = JSON.parse(sectionsText);
-    const { error } = await supabase
-      .from("pages")
-      .update({ title, sections, updated_at: new Date().toISOString() })
-      .eq("slug", slug);
-
-    if (error) setStatus(error.message);
-    else setStatus("Saved Ã¢Å“â€¦");
   }
 
-  return (
-    <AdminGuard>
-      <div className="mx-auto max-w-5xl px-4 py-10">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <div className="text-2xl font-semibold tracking-tight">Edit Page</div>
-            <div className="mt-1 text-sm text-mutedInk">Slug: {slug}</div>
-          </div>
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug]);
 
-          <div className="flex gap-2">
-            <Link href="/admin" className="rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold hover:bg-black/[0.02]">
-              Back
-            </Link>
-            <button onClick={save} className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800">
-              Save
-            </button>
-          </div>
+  return (
+    <div>
+      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Edit page</h1>
+          <p className="mt-1 text-sm text-mutedInk">Slug: /{slug}</p>
         </div>
 
-        <div className="mt-6 grid gap-4">
-          <div className="rounded-3xl border border-black/10 bg-white p-5 shadow-sm">
-            <label className="text-sm font-semibold">Title</label>
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="mt-2 w-full rounded-2xl border border-black/10 px-4 py-3 outline-none focus:ring-2 focus:ring-black/10"
-              placeholder="Page title"
-            />
-          </div>
+        <div className="flex gap-3">
+          <Link href="/admin" className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/[0.03]">
+            ← Back
+          </Link>
+          <button onClick={load} className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/[0.03]">
+            Refresh
+          </button>
+        </div>
+      </div>
 
-          <div className="rounded-3xl border border-black/10 bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div className="text-sm font-semibold">Sections (JSON)</div>
-              <div className={"text-xs " + (jsonValid ? "text-emerald-700" : "text-red-600")}>
-                {jsonValid ? "Valid JSON" : "Invalid JSON"}
+      {loading ? (
+        <div className="mt-6 rounded-3xl border border-black/10 bg-white px-5 py-6 text-sm text-mutedInk">Loading…</div>
+      ) : null}
+
+      {err ? (
+        <div className="mt-6 rounded-3xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-800">{err}</div>
+      ) : null}
+
+      {ok ? (
+        <div className="mt-6 rounded-3xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-900">{ok}</div>
+      ) : null}
+
+      {row ? (
+        <div className="mt-6 rounded-3xl border border-black/10 bg-white p-5">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <div className="text-xs font-medium text-mutedInk">Title</div>
+              <input
+                className="mt-2 w-full rounded-2xl border border-black/10 bg-white px-4 py-2 text-sm"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+              <div className="mt-2 text-xs text-mutedInk">
+                Updated: {row.updated_at ? new Date(row.updated_at).toLocaleString() : "—"}
               </div>
             </div>
 
-            <textarea
-              value={sectionsText}
-              onChange={(e) => setSectionsText(e.target.value)}
-              className="mt-3 h-[420px] w-full rounded-2xl border border-black/10 px-4 py-3 font-mono text-sm outline-none focus:ring-2 focus:ring-black/10"
-            />
-            <div className="mt-3 text-xs text-mutedInk">
-              Tip: keep sections as an array, e.g. [{"{"}"type":"text","title":"...","body":"..."{"}"}]
+            <div className="flex items-end justify-end">
+              <button
+                onClick={save}
+                disabled={saving}
+                className="rounded-2xl bg-black px-5 py-3 text-sm font-semibold text-white hover:bg-black/90 disabled:opacity-60"
+              >
+                {saving ? "Saving…" : "Save changes"}
+              </button>
             </div>
           </div>
 
-          {status && (
-            <div className="rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm">
-              {status}
+          <div className="mt-5">
+            <div className="text-xs font-medium text-mutedInk">Content (JSON)</div>
+            <textarea
+              className="mt-2 w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm font-mono"
+              rows={18}
+              value={contentText}
+              onChange={(e) => setContentText(e.target.value)}
+              spellCheck={false}
+            />
+            <div className="mt-2 text-xs text-mutedInk">
+              Tip: keep JSON valid. (We format it on save.)
             </div>
-          )}
+          </div>
 
-          {loading && <div className="text-sm text-mutedInk">LoadingÃ¢â‚¬Â¦</div>}
+          <details className="mt-5 rounded-2xl border border-black/10 p-4">
+            <summary className="cursor-pointer text-sm font-semibold">Preview JSON</summary>
+            <pre className="mt-3 overflow-auto text-xs">{pretty}</pre>
+          </details>
         </div>
-      </div>
-    </AdminGuard>
+      ) : null}
+    </div>
   );
 }
