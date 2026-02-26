@@ -10,6 +10,7 @@ type AppRow = {
   admin_note: string | null;
   created_at: string;
   updated_at: string;
+  submitted_at: string | null;
 };
 
 type DocRow = {
@@ -22,10 +23,18 @@ type DocRow = {
 
 const DOC_TYPES = [
   { value: "registration_form", label: "Registration Form (Scanned PDF/Image)" },
-  { value: "nin", label: "NIN / ID Document" },
+  { value: "registration_documents", label: "Registration Documents (Certificate/Bylaws/Minutes)" },
+  { value: "nin", label: "NIN / ID (Contact Person)" },
   { value: "photo", label: "Passport Photo" },
   { value: "other", label: "Other Supporting Document" },
 ] as const;
+
+const REQUIRED_DOCS = ["registration_form", "registration_documents", "nin", "photo"] as const;
+
+function hasRequiredDocs(docs: { doc_type: string }[]) {
+  const types = new Set(docs.map((d) => d.doc_type));
+  return REQUIRED_DOCS.every((t) => types.has(t));
+}
 
 function Badge({ status }: { status: string }) {
   const cls =
@@ -34,7 +43,11 @@ function Badge({ status }: { status: string }) {
       : status === "rejected"
       ? "bg-red-50 text-red-800 border-red-200"
       : "bg-amber-50 text-amber-800 border-amber-200";
-  return <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${cls}`}>{status.toUpperCase()}</span>;
+  return (
+    <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${cls}`}>
+      {status.toUpperCase()}
+    </span>
+  );
 }
 
 export default function MemberDashboard() {
@@ -47,11 +60,18 @@ export default function MemberDashboard() {
   const [docType, setDocType] = useState<(typeof DOC_TYPES)[number]["value"]>("registration_form");
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const formUrl = "/forms/virgo-member-registration-form.pdf";
+  // ✅ Always available: print-friendly HTML (users can Print → Save PDF)
+  const printableHtmlUrl = "/forms/virgo-support-application-form.html";
+  // ✅ Optional: if you upload a real PDF later, this will work too
+  const pdfUrl = "/forms/virgo-support-application-form.pdf";
+
+  const readyToSubmit = useMemo(() => hasRequiredDocs(docs), [docs]);
 
   const statusLine = useMemo(() => {
     if (!appRow) return null;
+    if (!appRow.submitted_at) return "📝 Upload required documents, then click Apply/Submit.";
     if (appRow.status === "approved") return "✅ Your application has been approved.";
     if (appRow.status === "rejected") return "❌ Your application was rejected. See note below.";
     return "⏳ Your application is pending review.";
@@ -68,10 +88,10 @@ export default function MemberDashboard() {
       return;
     }
 
-    // get or create application row for this user
+    // get or create application row
     const { data: existing, error: selErr } = await supabase
       .from("support_applications")
-      .select("id,status,admin_note,created_at,updated_at")
+      .select("id,status,admin_note,created_at,updated_at,submitted_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -88,8 +108,8 @@ export default function MemberDashboard() {
     if (!app) {
       const { data: created, error: insErr } = await supabase
         .from("support_applications")
-        .insert({ user_id: user.id, email: user.email })
-        .select("id,status,admin_note,created_at,updated_at")
+        .insert({ user_id: user.id, email: user.email, status: "pending" })
+        .select("id,status,admin_note,created_at,updated_at,submitted_at")
         .single();
 
       if (insErr) {
@@ -133,9 +153,8 @@ export default function MemberDashboard() {
     const user = auth.user;
     if (!user) return (window.location.href = "/members/login");
 
-    const ext = file.name.split(".").pop() || "bin";
     const safeName = file.name.replace(/[^\w.\-() ]/g, "_");
-    const path = `applications/${appRow.id}/${Date.now()}-${safeName}`;
+    const path = `users/${user.id}/applications/${appRow.id}/${Date.now()}-${safeName}`;
 
     setUploading(true);
 
@@ -165,11 +184,30 @@ export default function MemberDashboard() {
     load();
   }
 
-  async function downloadDoc(path: string) {
+  async function viewDoc(path: string) {
     setMsg(null);
-    const { data, error } = await supabase.storage.from("member-docs").createSignedUrl(path, 60);
+    const { data, error } = await supabase.storage.from("member-docs").createSignedUrl(path, 120);
     if (error) return setMsg(error.message);
     window.open(data.signedUrl, "_blank");
+  }
+
+  async function submitApplication() {
+    setMsg(null);
+    if (!appRow) return;
+    if (!readyToSubmit) return setMsg("Upload all required documents first.");
+
+    setSubmitting(true);
+    const { error } = await supabase
+      .from("support_applications")
+      .update({ submitted_at: new Date().toISOString(), status: "pending" })
+      .eq("id", appRow.id);
+
+    setSubmitting(false);
+
+    if (error) return setMsg(error.message);
+
+    setMsg("✅ Application submitted successfully. You can track status above.");
+    load();
   }
 
   return (
@@ -178,9 +216,13 @@ export default function MemberDashboard() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Member Dashboard</h1>
-            <p className="mt-1 text-sm text-neutral-600">Download the form, upload your documents, and track your status.</p>
+            <p className="mt-1 text-sm text-neutral-600">
+              Download forms, upload documents, and track your application status.
+            </p>
           </div>
-          <Link href="/" className="text-sm text-neutral-600 hover:underline">← Back to website</Link>
+          <Link href="/" className="text-sm text-neutral-600 hover:underline">
+            ← Back to website
+          </Link>
         </div>
 
         {loading ? (
@@ -204,24 +246,33 @@ export default function MemberDashboard() {
                 ) : null}
 
                 <div className="mt-4 flex flex-wrap gap-3 text-xs text-neutral-500">
-                  <span>Submitted: {appRow ? new Date(appRow.created_at).toLocaleString() : "-"}</span>
+                  <span>Submitted: {appRow?.submitted_at ? new Date(appRow.submitted_at).toLocaleString() : "Not yet"}</span>
                   <span>Last update: {appRow ? new Date(appRow.updated_at).toLocaleString() : "-"}</span>
                 </div>
               </div>
 
               <div className="rounded-3xl border p-6 shadow-sm">
-                <h2 className="text-lg font-semibold">Registration Form</h2>
+                <h2 className="text-lg font-semibold">Application Form</h2>
                 <p className="mt-2 text-sm text-neutral-600">
-                  Download, print, fill, scan, then upload below.
+                  Download/print, fill, scan, then upload under “Registration Form”.
                 </p>
 
-                <a
-                  href={formUrl}
-                  download
-                  className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-emerald-700 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-800"
-                >
-                  Download Form (PDF)
-                </a>
+                <div className="mt-4 grid gap-2">
+                  <a
+                    href={pdfUrl}
+                    className="inline-flex w-full items-center justify-center rounded-xl bg-emerald-700 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-800"
+                  >
+                    Download Form (PDF)
+                  </a>
+
+                  <a
+                    href={printableHtmlUrl}
+                    target="_blank"
+                    className="inline-flex w-full items-center justify-center rounded-xl border px-4 py-3 text-sm font-semibold hover:bg-neutral-50"
+                  >
+                    Print / Save as PDF (Online)
+                  </a>
+                </div>
 
                 <p className="mt-3 text-xs text-neutral-500">
                   Tip: You can scan with a phone using CamScanner / Google Drive scan.
@@ -241,7 +292,9 @@ export default function MemberDashboard() {
                     onChange={(e) => setDocType(e.target.value as any)}
                   >
                     {DOC_TYPES.map((d) => (
-                      <option key={d.value} value={d.value}>{d.label}</option>
+                      <option key={d.value} value={d.value}>
+                        {d.label}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -263,6 +316,21 @@ export default function MemberDashboard() {
                   >
                     {uploading ? "Uploading…" : "Upload document"}
                   </button>
+
+                  <button
+                    type="button"
+                    disabled={!readyToSubmit || submitting}
+                    onClick={submitApplication}
+                    className={`mt-3 w-full rounded-xl px-4 py-3 text-sm font-semibold text-white ${
+                      readyToSubmit ? "bg-emerald-700 hover:bg-emerald-800" : "bg-neutral-300 cursor-not-allowed"
+                    } disabled:opacity-60`}
+                  >
+                    {submitting ? "Submitting…" : readyToSubmit ? "Apply / Submit Application" : "Upload required documents to apply"}
+                  </button>
+
+                  <p className="mt-2 text-xs text-neutral-500">
+                    Required: Registration Form • Registration Documents • NIN/ID • Passport Photo
+                  </p>
                 </div>
               </form>
 
@@ -282,7 +350,7 @@ export default function MemberDashboard() {
                           </div>
                         </div>
                         <button
-                          onClick={() => downloadDoc(d.file_path)}
+                          onClick={() => viewDoc(d.file_path)}
                           className="rounded-xl border px-3 py-2 text-sm hover:bg-neutral-50"
                         >
                           View
