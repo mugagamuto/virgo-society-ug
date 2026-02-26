@@ -4,6 +4,8 @@ import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase-browser";
 
+type MemberStatus = "active" | "suspended";
+
 type MemberRow = {
   user_id: string;
   org_name: string | null;
@@ -12,7 +14,7 @@ type MemberRow = {
   email: string | null;
   location: string | null;
   district: string | null;
-  status: "active" | "suspended" | string;
+  status: MemberStatus | string;
   created_at: string;
 };
 
@@ -26,7 +28,19 @@ type ProjectRow = {
 };
 
 function isUuid(v: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    v
+  );
+}
+
+function isSupabaseLockError(err: any) {
+  const m = String(err?.message ?? err ?? "");
+  return (
+    m.includes("Navigator LockManager") ||
+    m.includes("Acquiring an exclusive") ||
+    m.includes("auth-token") ||
+    m.includes("timed out waiting")
+  );
 }
 
 export default function AdminMemberDetail({ params }: { params: { id: string } }) {
@@ -42,6 +56,9 @@ export default function AdminMemberDetail({ params }: { params: { id: string } }
   const [resetLoading, setResetLoading] = useState(false);
   const [resetLink, setResetLink] = useState<string | null>(null);
 
+  // If we detect the Supabase auth lock issue, show a recovery card
+  const [needsAuthRepair, setNeedsAuthRepair] = useState(false);
+
   const fundedTotal = useMemo(() => {
     return projects.reduce((acc, p) => acc + Number(p.funded_ugx ?? 0), 0);
   }, [projects]);
@@ -51,32 +68,40 @@ export default function AdminMemberDetail({ params }: { params: { id: string } }
     setLoading(true);
     setMsg(null);
     setResetLink(null);
+    setNeedsAuthRepair(false);
 
-    const { data, error } = await supabase
-      .from("members")
-      .select("user_id,org_name,contact_name,phone,email,location,district,status,created_at")
-      .eq("user_id", id)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from<any>("members")
+        .select("user_id,org_name,contact_name,phone,email,location,district,status,created_at")
+        .eq("user_id", id)
+        .single();
 
-    if (error) {
+      if (error) {
+        setLoading(false);
+        setMsg(error.message);
+        return;
+      }
+
+      setRow(data as MemberRow);
+
+      const { data: proj, error: projErr } = await supabase
+        .from<any>("projects")
+        .select("id,title,status,is_fundable,funded_ugx,created_at")
+        .eq("org_name", (data as any).org_name)
+        .order("created_at", { ascending: false });
+
+      if (!projErr) setProjects((proj ?? []) as ProjectRow[]);
       setLoading(false);
-      setMsg(error.message);
-      return;
+    } catch (err: any) {
+      setLoading(false);
+      if (isSupabaseLockError(err)) {
+        setNeedsAuthRepair(true);
+        setMsg("Session storage got stuck in this browser. Tap “Fix session” then retry.");
+      } else {
+        setMsg(err?.message ?? "Something went wrong.");
+      }
     }
-
-    setRow(data as MemberRow);
-
-    // Optional: link projects by org_name or user_id depending on your schema
-    // If your projects table has owner_user_id, change the filter to eq("owner_user_id", id)
-    const { data: proj, error: projErr } = await supabase
-      .from("projects")
-      .select("id,title,status,is_fundable,funded_ugx,created_at")
-      .eq("org_name", (data as any).org_name)
-      .order("created_at", { ascending: false });
-
-    if (!projErr) setProjects((proj ?? []) as ProjectRow[]);
-
-    setLoading(false);
   }
 
   useEffect(() => {
@@ -88,16 +113,30 @@ export default function AdminMemberDetail({ params }: { params: { id: string } }
     if (!row) return;
     setSaving(true);
     setMsg(null);
+    setNeedsAuthRepair(false);
 
-    const next = row.status === "active" ? "suspended" : "active";
+    const next: MemberStatus = row.status === "active" ? "suspended" : "active";
 
-    const { error } = await supabase.from("members").update({ status: next }).eq("user_id", row.user_id);
+    try {
+      const { error } = await supabase
+        .from<any>("members")
+        .update({ status: next })
+        .eq("user_id", row.user_id);
 
-    setSaving(false);
-    if (error) return setMsg(error.message);
+      setSaving(false);
+      if (error) return setMsg(error.message);
 
-    setRow({ ...row, status: next });
-    setMsg("✅ Member status updated.");
+      setRow({ ...row, status: next });
+      setMsg("✅ Member status updated.");
+    } catch (err: any) {
+      setSaving(false);
+      if (isSupabaseLockError(err)) {
+        setNeedsAuthRepair(true);
+        setMsg("Session storage got stuck in this browser. Tap “Fix session” then retry.");
+      } else {
+        setMsg(err?.message ?? "Failed to update status.");
+      }
+    }
   }
 
   async function generateResetLink() {
@@ -105,30 +144,42 @@ export default function AdminMemberDetail({ params }: { params: { id: string } }
     setResetLoading(true);
     setMsg(null);
     setResetLink(null);
+    setNeedsAuthRepair(false);
 
-    const { data: sess } = await supabase.auth.getSession();
-    const token = sess.session?.access_token;
-    if (!token) {
+    try {
+      const { data: sess } = await supabase.auth.getSession();
+      const token = sess.session?.access_token;
+
+      if (!token) {
+        setResetLoading(false);
+        return setMsg("Admin session missing. Please sign in again.");
+      }
+
+      const res = await fetch("/api/admin/reset-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ email: row.email }),
+      });
+
+      const json = await res.json();
       setResetLoading(false);
-      return setMsg("Admin session missing. Please sign in again.");
+
+      if (!res.ok) return setMsg(json?.error ?? "Failed to generate reset link");
+
+      setResetLink(json.action_link);
+      setMsg("✅ Reset link generated. Copy and send to the member.");
+    } catch (err: any) {
+      setResetLoading(false);
+      if (isSupabaseLockError(err)) {
+        setNeedsAuthRepair(true);
+        setMsg("Session storage got stuck in this browser. Tap “Fix session” then retry.");
+      } else {
+        setMsg(err?.message ?? "Failed to generate reset link.");
+      }
     }
-
-    const res = await fetch("/api/admin/reset-password", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ email: row.email }),
-    });
-
-    const json = await res.json();
-    setResetLoading(false);
-
-    if (!res.ok) return setMsg(json?.error ?? "Failed to generate reset link");
-
-    setResetLink(json.action_link);
-    setMsg("✅ Reset link generated. Copy and send to the member.");
   }
 
   if (badId) {
@@ -137,7 +188,10 @@ export default function AdminMemberDetail({ params }: { params: { id: string } }
         <div className="text-lg font-semibold">Invalid member link</div>
         <div className="mt-2 text-sm text-mutedInk">The member id is missing or incorrect.</div>
         <div className="mt-4">
-          <Link href="/admin/members" className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/[0.03]">
+          <Link
+            href="/admin/members"
+            className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/[0.03]"
+          >
             Back to members
           </Link>
         </div>
@@ -154,17 +208,49 @@ export default function AdminMemberDetail({ params }: { params: { id: string } }
         </div>
 
         <div className="flex gap-3">
-          <Link href="/admin/members" className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/[0.03]">
+          <Link
+            href="/admin/members"
+            className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/[0.03]"
+          >
             ← Back
           </Link>
-          <button onClick={load} className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/[0.03]">
+          <button
+            onClick={load}
+            className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/[0.03]"
+          >
             Refresh
           </button>
         </div>
       </div>
 
+      {needsAuthRepair ? (
+        <div className="mt-6 rounded-3xl border border-amber-200 bg-amber-50 px-5 py-5 text-sm">
+          <div className="font-semibold">Session issue detected</div>
+          <div className="mt-1 text-amber-900/80">
+            This browser’s saved session got stuck (common on mobile). Use the fix button below, then come back and
+            press Refresh.
+          </div>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link
+              href="/auth-repair"
+              className="rounded-2xl bg-amber-700 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-800"
+            >
+              Fix session
+            </Link>
+            <button
+              onClick={load}
+              className="rounded-2xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold hover:bg-black/[0.03]"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       {loading ? (
-        <div className="mt-6 rounded-3xl border border-black/10 bg-white px-5 py-6 text-sm text-mutedInk">Loading…</div>
+        <div className="mt-6 rounded-3xl border border-black/10 bg-white px-5 py-6 text-sm text-mutedInk">
+          Loading…
+        </div>
       ) : null}
 
       {msg ? (
@@ -240,7 +326,8 @@ export default function AdminMemberDetail({ params }: { params: { id: string } }
                     <div>
                       <div className="text-sm font-semibold">{p.title}</div>
                       <div className="mt-1 text-xs text-mutedInk">
-                        Status: {p.status} • Fundable: {p.is_fundable ? "Yes" : "No"} • Funded: UGX {Number(p.funded_ugx ?? 0).toLocaleString("en-UG")}
+                        Status: {p.status} • Fundable: {p.is_fundable ? "Yes" : "No"} • Funded: UGX{" "}
+                        {Number(p.funded_ugx ?? 0).toLocaleString("en-UG")}
                       </div>
                     </div>
                     <Link

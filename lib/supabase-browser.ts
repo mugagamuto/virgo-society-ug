@@ -1,3 +1,5 @@
+﻿"use client";
+
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -9,6 +11,8 @@ declare global {
   var __supabase__: ReturnType<typeof createClient> | undefined;
 }
 
+const isBrowser = typeof window !== "undefined";
+
 export const supabase =
   globalThis.__supabase__ ??
   createClient(supabaseUrl, supabaseAnonKey, {
@@ -17,10 +21,8 @@ export const supabase =
       autoRefreshToken: true,
       detectSessionInUrl: true,
       flowType: "pkce",
-
-      // ✅ Disable Web Locks API (fixes "Navigator LockManager ... timed out" on mobile)
-      lock: async (_name, fn) => await fn(),
+      ...(isBrowser ? { lock: async (_name, fn) => await fn() } : {}),
     },
   });
 
-if (typeof window !== "undefined") globalThis.__supabase__ = supabase;
+if (isBrowser) globalThis.__supabase__ = supabase;
