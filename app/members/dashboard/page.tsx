@@ -170,6 +170,7 @@ export default function MemberDashboardPage() {
       .from("projects")
       .insert({
         owner_id: user.id,
+        owner_email: user.email,
         title: "New Project",
         description: "Describe your project…",
         goals: "List goals & objectives…",
@@ -510,3 +511,4 @@ export default function MemberDashboardPage() {
     </main>
   );
 }
+
