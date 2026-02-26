@@ -14,9 +14,11 @@ export default function MemberAuthClient() {
   const [msg, setMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // login
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
 
+  // signup (org/group)
   const [orgName, setOrgName] = useState("");
   const [location, setLocation] = useState("");
   const [membersCount, setMembersCount] = useState<string>("");
@@ -75,7 +77,8 @@ export default function MemberAuthClient() {
 
     setLoading(true);
 
-    const { data, error: signUpError } = await supabase.auth.signUp({
+    // Create auth user. (If email confirmation is enabled, they must confirm then log in.)
+    const { error: signUpError } = await supabase.auth.signUp({
       email,
       password: signupPassword,
       options: {
@@ -90,35 +93,17 @@ export default function MemberAuthClient() {
       },
     });
 
-    if (signUpError) {
-      setLoading(false);
-      return setMsg(signUpError.message);
-    }
+    setLoading(false);
 
-\ \ \ \ //\ ✅\ Only\ create\ a\ support_applications\ row\ if\ the\ user\ is\ already\ signed-in\ \(session\ exists\)\.
-\ \ \ \ //\ If\ email\ confirmation\ is\ required,\ session\ will\ be\ null\ until\ they\ confirm\ \+\ login\.
-\ \ \ \ const\ \{\ data:\ sessionData\ }\ =\ await\ supabase\.auth\.getSession\(\);
-\ \ \ \ const\ authedUserId\ =\ sessionData\.session\?\.user\?\.id\ \?\?\ null;
+    if (signUpError) return setMsg(signUpError.message);
 
-\ \ \ \ if\ \(authedUserId\)\ \{
-\ \ \ \ \ \ const\ \{\ error:\ insertError\ }\ =\ await\ supabase\.from\("support_applications"\)\.insert\(\{
-\ \ \ \ \ \ \ \ user_id:\ authedUserId,
-\ \ \ \ \ \ \ \ email,
-\ \ \ \ \ \ \ \ full_name:\ contactName\.trim\(\),
-\ \ \ \ \ \ \ \ phone:\ phone\.trim\(\),
-\ \ \ \ \ \ \ \ location:\ location\.trim\(\),
-\ \ \ \ \ \ \ \ org_name:\ orgName\.trim\(\),
-\ \ \ \ \ \ \ \ members_count:\ mCount,
-\ \ \ \ \ \ \ \ status:\ "pending",
-\ \ \ \ \ \ }\ as\ any\);
+    // IMPORTANT: Do NOT insert into support_applications here.
+    // RLS blocks anon inserts when the user isn't authenticated yet (common if email confirmation is ON).
+    // The member dashboard will create the application row after the user logs in.
+    setMsg(
+      "Signup received ✅ Please check your email (if confirmation is required), then log in. Your application will appear in your dashboard."
+    );
 
-\ \ \ \ \ \ setLoading\(false\);
-\ \ \ \ \ \ if\ \(insertError\)\ return\ setMsg\(insertError\.message\);
-\ \ \ \ }\ else\ \{
-\ \ \ \ \ \ setLoading\(false\);
-\ \ \ \ }
-
-\ \ \ \ setMsg\("Signup\ received\ ✅\ Please\ check\ your\ email\ \(if\ confirmation\ is\ required\),\ then\ log\ in\.\ Your\ application\ will\ appear\ in\ your\ dashboard\."\);
     setTab("login");
     setLoginEmail(email);
     setLoginPassword("");
@@ -314,4 +299,3 @@ export default function MemberAuthClient() {
     </main>
   );
 }
-
