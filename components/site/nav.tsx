@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 export const navItems = [
@@ -19,8 +19,16 @@ export function NavLinks({ className }: { className?: string }) {
           {item.label}
         </Link>
       ))}
-    </nav>
+              <Link
+            href="/members/login"
+            className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
+          >
+            Member Login
+          </Link>
+</nav>
   );
 }
+
+
 
 
