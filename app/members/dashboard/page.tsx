@@ -63,9 +63,9 @@ export default function MemberDashboard() {
   const [submitting, setSubmitting] = useState(false);
 
   // ✅ Always available: print-friendly HTML (users can Print → Save PDF)
-  const printableHtmlUrl = "/forms/virgo-support-application-form.html";
+  const printableHtmlUrl = "/forms/support-application";
   // ✅ Optional: if you upload a real PDF later, this will work too
-  const pdfUrl = "/forms/virgo-support-application-form.pdf";
+  const pdfUrl = "/forms/support-application";
 
   const readyToSubmit = useMemo(() => hasRequiredDocs(docs), [docs]);
 
@@ -371,3 +371,4 @@ export default function MemberDashboard() {
     </main>
   );
 }
+
