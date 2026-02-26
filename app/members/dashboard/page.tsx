@@ -206,7 +206,7 @@ export default function MemberDashboard() {
 
     if (error) return setMsg(error.message);
 
-    setMsg("✅ Application submitted successfully. You can track status above.");
+    setMsg("✅ Thank you! We have received your application and documents. Our team will contact you soon.");
     load();
   }
 
@@ -371,4 +371,5 @@ export default function MemberDashboard() {
     </main>
   );
 }
+
 
