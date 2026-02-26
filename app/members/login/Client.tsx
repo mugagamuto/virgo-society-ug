@@ -95,24 +95,30 @@ export default function MemberAuthClient() {
       return setMsg(signUpError.message);
     }
 
-    const userId = data.user?.id ?? null;
+\ \ \ \ //\ ✅\ Only\ create\ a\ support_applications\ row\ if\ the\ user\ is\ already\ signed-in\ \(session\ exists\)\.
+\ \ \ \ //\ If\ email\ confirmation\ is\ required,\ session\ will\ be\ null\ until\ they\ confirm\ \+\ login\.
+\ \ \ \ const\ \{\ data:\ sessionData\ }\ =\ await\ supabase\.auth\.getSession\(\);
+\ \ \ \ const\ authedUserId\ =\ sessionData\.session\?\.user\?\.id\ \?\?\ null;
 
-    const { error: insertError } = await supabase.from("support_applications").insert({
-      user_id: userId,
-      email,
-      full_name: contactName.trim(),
-      phone: phone.trim(),
-      location: location.trim(),
-      org_name: orgName.trim(),
-      members_count: mCount,
-      status: "pending",
-    } as any);
+\ \ \ \ if\ \(authedUserId\)\ \{
+\ \ \ \ \ \ const\ \{\ error:\ insertError\ }\ =\ await\ supabase\.from\("support_applications"\)\.insert\(\{
+\ \ \ \ \ \ \ \ user_id:\ authedUserId,
+\ \ \ \ \ \ \ \ email,
+\ \ \ \ \ \ \ \ full_name:\ contactName\.trim\(\),
+\ \ \ \ \ \ \ \ phone:\ phone\.trim\(\),
+\ \ \ \ \ \ \ \ location:\ location\.trim\(\),
+\ \ \ \ \ \ \ \ org_name:\ orgName\.trim\(\),
+\ \ \ \ \ \ \ \ members_count:\ mCount,
+\ \ \ \ \ \ \ \ status:\ "pending",
+\ \ \ \ \ \ }\ as\ any\);
 
-    setLoading(false);
+\ \ \ \ \ \ setLoading\(false\);
+\ \ \ \ \ \ if\ \(insertError\)\ return\ setMsg\(insertError\.message\);
+\ \ \ \ }\ else\ \{
+\ \ \ \ \ \ setLoading\(false\);
+\ \ \ \ }
 
-    if (insertError) return setMsg(insertError.message);
-
-    setMsg("Signup received ✅ You can now log in (or confirm email if required).");
+\ \ \ \ setMsg\("Signup\ received\ ✅\ Please\ check\ your\ email\ \(if\ confirmation\ is\ required\),\ then\ log\ in\.\ Your\ application\ will\ appear\ in\ your\ dashboard\."\);
     setTab("login");
     setLoginEmail(email);
     setLoginPassword("");
@@ -308,3 +314,4 @@ export default function MemberAuthClient() {
     </main>
   );
 }
+
