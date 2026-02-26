@@ -1,6 +1,5 @@
 ﻿import type { Metadata } from "next";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
 import { Header } from "@/components/site/header";
 import { Footer } from "@/components/site/footer";
 import { site } from "@/content/site";
@@ -26,7 +25,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        <Navbar />
         <Header />
         <main className="min-h-[70vh]">{children}</main>
         <Footer />
@@ -35,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
+
 
 
 
