@@ -1,9 +1,9 @@
-﻿import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-// Singleton in the browser to avoid multiple clients (reduces Navigator Lock timeouts)
+// Singleton client in browser to avoid multiple instances
 declare global {
   // eslint-disable-next-line no-var
   var __supabase__: ReturnType<typeof createClient> | undefined;
@@ -17,6 +17,9 @@ export const supabase =
       autoRefreshToken: true,
       detectSessionInUrl: true,
       flowType: "pkce",
+
+      // ✅ Disable Web Locks API (fixes "Navigator LockManager ... timed out" on mobile)
+      lock: async (_name, fn) => await fn(),
     },
   });
 

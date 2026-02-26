@@ -1,271 +1,61 @@
 ﻿"use client";
 
+import * as React from "react";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase-browser";
+import { Menu, X } from "lucide-react";
+import { Logo } from "./logo";
+import { NavLinks, navItems } from "./nav";
+import { Button } from "@/components/ui/button";
+import { Container } from "./container";
+import { cn } from "@/lib/utils";
 
-type DocRow = {
-  id: string;
-  doc_type: string;
-  file_path: string;
-  original_name: string | null;
-  created_at: string;
-};
-
-type AppRow = {
-  id: string;
-  status: string;
-  admin_note: string | null;
-  created_at: string;
-  updated_at: string;
-  submitted_at: string | null;
-
-  org_name: string | null;
-  members_count: number | null;
-
-  full_name: string | null;
-  email: string | null;
-  phone: string | null;
-  location: string | null;
-  district: string | null;
-  address: string | null;
-};
-
-function isUuid(v: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
-}
-
-function StatusPill({ status }: { status: string }) {
-  const cls =
-    status === "approved"
-      ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-      : status === "rejected"
-      ? "bg-red-50 text-red-800 border-red-200"
-      : "bg-amber-50 text-amber-800 border-amber-200";
-  return <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${cls}`}>{status.toUpperCase()}</span>;
-}
-
-export default function AdminApplicationDetail({ params }: { params: { id: string } }) {
-  const id = params?.id;
-  const badId = !id || !isUuid(id);
-
-  const [row, setRow] = useState<AppRow | null>(null);
-  const [docs, setDocs] = useState<DocRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [msg, setMsg] = useState<string | null>(null);
-
-  const [saving, setSaving] = useState(false);
-  const [status, setStatus] = useState<"pending" | "approved" | "rejected">("pending");
-  const [note, setNote] = useState("");
-
-  async function load() {
-    if (badId) return;
-    setLoading(true);
-    setMsg(null);
-
-    const { data: app, error: appErr } = await supabase
-      .from("support_applications")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    if (appErr) {
-      setLoading(false);
-      setMsg(appErr.message);
-      return;
-    }
-
-    setRow(app as AppRow);
-    setStatus(((app as any).status ?? "pending") as any);
-    setNote((app as any).admin_note ?? "");
-
-    const { data: docRows, error: docErr } = await supabase
-      .from("application_documents")
-      .select("id,doc_type,file_path,original_name,created_at")
-      .eq("application_id", id)
-      .order("created_at", { ascending: false });
-
-    if (docErr) {
-      setLoading(false);
-      setMsg(docErr.message);
-      return;
-    }
-
-    setDocs((docRows ?? []) as DocRow[]);
-    setLoading(false);
-  }
-
-  useEffect(() => {
-    if (badId) return;
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [badId, id]);
-
-  async function viewDoc(path: string) {
-    setMsg(null);
-    const { data, error } = await supabase.storage.from("member-docs").createSignedUrl(path, 120);
-    if (error) return setMsg(error.message);
-    window.open(data.signedUrl, "_blank");
-  }
-
-  async function saveDecision() {
-    if (!row) return;
-    setSaving(true);
-    setMsg(null);
-
-    const { error } = await supabase
-      .from("support_applications")
-      .update({ status, admin_note: note })
-      .eq("id", row.id);
-
-    setSaving(false);
-
-    if (error) return setMsg(error.message);
-
-    setMsg("✅ Updated successfully.");
-    load();
-  }
-
-  if (badId) {
-    return (
-      <div className="rounded-3xl border border-black/10 bg-white p-6">
-        <div className="text-lg font-semibold">Invalid application link</div>
-        <div className="mt-2 text-sm text-mutedInk">This application ID is missing or incorrect.</div>
-        <div className="mt-4">
-          <Link href="/admin/applications" className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/[0.03]">
-            Back to Applications
-          </Link>
-        </div>
-      </div>
-    );
-  }
+export function Header() {
+  const [open, setOpen] = React.useState(false);
 
   return (
-    <div>
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
-          <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-semibold tracking-tight">Project Review</h1>
-            {row ? <StatusPill status={row.status} /> : null}
-          </div>
-          <p className="mt-1 text-sm text-mutedInk">Approve/reject and review uploaded documents.</p>
-        </div>
+    <header className="sticky top-0 z-50 backdrop-blur bg-white/80 border-b border-black/5">
+      <Container className="h-16 flex items-center justify-between">
+        <Logo />
 
-        <div className="flex gap-3">
-          <Link href="/admin/applications" className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/[0.03]">
-            ← Back
+        <div className="hidden md:flex items-center gap-6">
+          <NavLinks />
+          <Link href="/donors">
+            <Button size="sm">Fund a Project</Button>
           </Link>
-          <button onClick={load} className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/[0.03]">
-            Refresh
-          </button>
         </div>
-      </div>
 
-      {loading ? (
-        <div className="mt-6 rounded-3xl border border-black/10 bg-white px-5 py-6 text-sm text-mutedInk">Loading…</div>
-      ) : null}
+        <button
+          className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-black/10"
+          onClick={() => setOpen((v) => !v)}
+          aria-label="Toggle menu"
+        >
+          {open ? <X size={18} /> : <Menu size={18} />}
+        </button>
+      </Container>
 
-      {msg ? (
-        <div className="mt-6 rounded-3xl border border-black/10 bg-white px-5 py-4 text-sm">{msg}</div>
-      ) : null}
-
-      {row ? (
-        <>
-          <div className="mt-6 grid gap-6 lg:grid-cols-3">
-            <div className="rounded-3xl border border-black/10 bg-white p-5 lg:col-span-2">
-              <div className="text-sm font-semibold">Registration information</div>
-
-              <div className="mt-4 grid gap-3 md:grid-cols-2">
-                <Field label="Organisation name" value={row.org_name} />
-                <Field label="Members count" value={row.members_count} />
-                <Field label="Contact name" value={row.full_name} />
-                <Field label="Email" value={row.email} />
-                <Field label="Phone" value={row.phone} />
-                <Field label="Location" value={row.location} />
-                <Field label="District" value={row.district} />
-                <Field label="Address" value={row.address} />
-              </div>
-
-              <div className="mt-4 text-xs text-mutedInk">
-                Submitted: {row.submitted_at ? new Date(row.submitted_at).toLocaleString() : "Not yet"} •
-                Created: {new Date(row.created_at).toLocaleString()}
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-black/10 bg-white p-5">
-              <div className="text-sm font-semibold">Decision</div>
-
-              <div className="mt-4">
-                <div className="text-xs font-medium text-mutedInk">Status</div>
-                <select
-                  className="mt-2 w-full rounded-2xl border border-black/10 bg-white px-3 py-2 text-sm"
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value as any)}
-                >
-                  <option value="pending">Pending</option>
-                  <option value="approved">Approved</option>
-                  <option value="rejected">Rejected</option>
-                </select>
-              </div>
-
-              <div className="mt-4">
-                <div className="text-xs font-medium text-mutedInk">Admin note (optional)</div>
-                <textarea
-                  className="mt-2 w-full rounded-2xl border border-black/10 bg-white px-3 py-2 text-sm"
-                  rows={5}
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  placeholder="Reason / next steps…"
-                />
-              </div>
-
-              <button
-                onClick={saveDecision}
-                disabled={saving}
-                className="mt-4 w-full rounded-2xl bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-black/90 disabled:opacity-60"
+      <div className={cn("md:hidden border-t border-black/5", open ? "block" : "hidden")}>
+        <Container className="py-4">
+          <div className="flex flex-col gap-3 text-sm">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setOpen(false)}
+                className="py-2 text-mutedInk hover:text-ink"
               >
-                {saving ? "Saving…" : "Save decision"}
-              </button>
-            </div>
+                {item.label}
+              </Link>
+            ))}
+            <Link href="/donors" onClick={() => setOpen(false)}>
+              <Button className="w-full mt-2">Fund a Project</Button>
+            </Link>
           </div>
-
-          <div className="mt-6 rounded-3xl border border-black/10 bg-white">
-            <div className="border-b border-black/5 px-5 py-4 text-sm font-medium">Uploaded documents</div>
-
-            {docs.length === 0 ? (
-              <div className="px-5 py-6 text-sm text-mutedInk">No documents uploaded yet.</div>
-            ) : (
-              <div className="divide-y divide-black/5">
-                {docs.map((d) => (
-                  <div key={d.id} className="flex flex-col gap-2 px-5 py-4 md:flex-row md:items-center md:justify-between">
-                    <div>
-                      <div className="text-sm font-semibold">{d.doc_type}</div>
-                      <div className="text-xs text-mutedInk">
-                        {d.original_name ?? d.file_path} • {new Date(d.created_at).toLocaleString()}
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => viewDoc(d.file_path)}
-                      className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/[0.03]"
-                    >
-                      View
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </>
-      ) : null}
-    </div>
+        </Container>
+      </div>
+    </header>
   );
 }
 
-function Field({ label, value }: { label: string; value: any }) {
-  return (
-    <div className="rounded-2xl border border-black/10 p-4">
-      <div className="text-xs font-medium text-mutedInk">{label}</div>
-      <div className="mt-1 text-sm font-semibold text-ink">{value || "—"}</div>
-    </div>
-  );
-}
+
+
+
