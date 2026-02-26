@@ -74,7 +74,7 @@ export default function MemberDashboard() {
     if (!appRow.submitted_at) return "📝 Upload required documents, then click Apply/Submit.";
     if (appRow.status === "approved") return "✅ Your application has been approved.";
     if (appRow.status === "rejected") return "❌ Your application was rejected. See note below.";
-    return "⏳ Your application is pending review.";
+    if (appRow.status === "submitted") return "⏳ Your application has been submitted and is pending review."; return "⏳ Your application is pending review.";
   }, [appRow]);
 
   async function load() {
@@ -108,7 +108,7 @@ export default function MemberDashboard() {
     if (!app) {
       const { data: created, error: insErr } = await supabase
         .from("support_applications")
-        .insert({ user_id: user.id, email: user.email, status: "pending" })
+        .insert({ user_id: user.id, email: user.email, status: "submitted" })
         .select("id,status,admin_note,created_at,updated_at,submitted_at")
         .single();
 
@@ -199,7 +199,7 @@ export default function MemberDashboard() {
     setSubmitting(true);
     const { error } = await supabase
       .from("support_applications")
-      .update({ submitted_at: new Date().toISOString(), status: "pending" })
+      .update({ submitted_at: new Date().toISOString(), status: "submitted" })
       .eq("id", appRow.id);
 
     setSubmitting(false);
@@ -371,5 +371,6 @@ export default function MemberDashboard() {
     </main>
   );
 }
+
 
 
