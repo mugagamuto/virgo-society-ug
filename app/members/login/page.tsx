@@ -1,23 +1,22 @@
 ﻿"use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 
 type Tab = "login" | "signup";
 
 export default function MemberAuthPage() {
+  const searchParams = useSearchParams();
   const [tab, setTab] = useState<Tab>("login");
 
-  // shared
   const [msg, setMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // login
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
 
-  // signup (org/group)
   const [orgName, setOrgName] = useState("");
   const [location, setLocation] = useState("");
   const [membersCount, setMembersCount] = useState<string>("");
@@ -26,9 +25,13 @@ export default function MemberAuthPage() {
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
 
+  useEffect(() => {
+    const t = searchParams.get("tab");
+    if (t === "signup") setTab("signup");
+  }, [searchParams]);
+
   const redirectTo = useMemo(() => {
     if (typeof window === "undefined") return undefined;
-    // useful if you later switch back to email confirmation flows
     return `${window.location.origin}/members/login`;
   }, []);
 
@@ -38,7 +41,8 @@ export default function MemberAuthPage() {
 
     const email = loginEmail.trim().toLowerCase();
     if (!email.includes("@")) return setMsg("Enter a valid email address.");
-    if (!loginPassword || loginPassword.length < 6) return setMsg("Enter your password (min 6 chars).");
+    if (!loginPassword || loginPassword.length < 6)
+      return setMsg("Enter your password (min 6 chars).");
 
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({
@@ -48,7 +52,6 @@ export default function MemberAuthPage() {
     setLoading(false);
 
     if (error) return setMsg(error.message);
-
     window.location.href = "/members/dashboard";
   }
 
@@ -61,15 +64,16 @@ export default function MemberAuthPage() {
 
     if (!orgName.trim()) return setMsg("Enter your group/organization name.");
     if (!location.trim()) return setMsg("Enter your location.");
-    if (!Number.isFinite(mCount) || mCount <= 0) return setMsg("Enter number of members (e.g. 25).");
+    if (!Number.isFinite(mCount) || mCount <= 0)
+      return setMsg("Enter number of members (e.g. 25).");
     if (!contactName.trim()) return setMsg("Enter the contact person name.");
     if (!phone.trim()) return setMsg("Enter a phone number.");
     if (!email.includes("@")) return setMsg("Enter a valid email address.");
-    if (!signupPassword || signupPassword.length < 6) return setMsg("Password must be at least 6 characters.");
+    if (!signupPassword || signupPassword.length < 6)
+      return setMsg("Password must be at least 6 characters.");
 
     setLoading(true);
 
-    // 1) Create auth account
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password: signupPassword,
@@ -90,26 +94,24 @@ export default function MemberAuthPage() {
       return setMsg(signUpError.message);
     }
 
-    // 2) Save application details (works even if you later require admin approval)
-    // NOTE: you must create the table + RLS policy below.
     const userId = data.user?.id ?? null;
 
-    const { error: insertError } = await supabase.from("org_applications").insert({
+    const { error: insertError } = await supabase.from("support_applications").insert({
       user_id: userId,
-      org_name: orgName.trim(),
-      location: location.trim(),
-      members_count: mCount,
-      contact_name: contactName.trim(),
-      phone: phone.trim(),
       email,
+      full_name: contactName.trim(),
+      phone: phone.trim(),
+      location: location.trim(),
+      org_name: orgName.trim(),
+      members_count: mCount,
       status: "pending",
-    });
+    } as any);
 
     setLoading(false);
 
     if (insertError) return setMsg(insertError.message);
 
-    setMsg("Application received ✅ Check your email if confirmation is enabled. You can now log in.");
+    setMsg("Signup received ✅ You can now log in (or confirm email if required).");
     setTab("login");
     setLoginEmail(email);
     setLoginPassword("");
@@ -125,7 +127,6 @@ export default function MemberAuthPage() {
             Log in if you already have an account, or submit your organization signup.
           </p>
 
-          {/* Tabs */}
           <div className="mt-6 grid grid-cols-2 rounded-2xl bg-neutral-100 p-1">
             <button
               type="button"
@@ -282,8 +283,7 @@ export default function MemberAuthPage() {
               </button>
 
               <p className="text-xs text-neutral-500">
-                After submitting, your application can be reviewed. If email confirmation is enabled in Supabase,
-                you may need to confirm your email before logging in.
+                If email confirmation is enabled in Supabase, you may need to confirm your email before logging in.
               </p>
             </form>
           )}
