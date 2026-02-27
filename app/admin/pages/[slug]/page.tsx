@@ -91,7 +91,7 @@ export default function AdminPageEditor({ params }: { params: { slug: string } }
         throw new Error("Content must be valid JSON.");
       }
 
-      const { error } = await (supabase as any)`r`n        .from("pages")`r`n        .update(({ title: title.trim() || row.title, content: parsed } as any))`r`n        .eq("slug", row.slug);
+      const { error } = await (supabase as any).from("pages").update({ title: title.trim() || row.title, content: parsed } as any).eq("slug", row.slug);
 
       if (error) throw error;
 
