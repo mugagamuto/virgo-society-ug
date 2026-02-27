@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -166,9 +166,7 @@ export default function MemberDashboardPage() {
     if (!user) return (window.location.href = "/members/login");
 
     setSaving(true);
-    const { data, error } = await supabase
-      .from("projects")
-      .insert({
+    const { data, error } = await (supabase as any)`n      .from("projects")`n      .insert({
         owner_id: user.id,
         owner_email: user.email,
         title: "New Project",
