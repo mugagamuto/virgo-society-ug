@@ -112,61 +112,7 @@ export default function MemberDashboardPage() {
       return;
     }
 
-    const { data, error } = await supabase
-      .from("projects")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      setLoading(false);
-      setMsg(error.message);
-      return;
-    }
-
-    const rows = (data ?? []) as ProjectRow[];
-    setProjects(rows);
-
-    const firstId = rows[0]?.id ?? null;
-    setActiveId((prev) => prev ?? firstId);
-
-    setLoading(false);
-  }
-
-  async function loadDocs(projectId: string) {
-    const { data, error } = await supabase
-      .from("project_documents")
-      .select("id,doc_type,file_path,original_name,created_at")
-      .eq("project_id", projectId)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      setMsg(error.message);
-      return;
-    }
-    setDocs((data ?? []) as DocRow[]);
-  }
-
-  useEffect(() => {
-    loadProjects();
-  }, []);
-
-  useEffect(() => {
-    if (!activeId) return;
-    const p = projects.find((x) => x.id === activeId) ?? null;
-    fillForm(p);
-    loadDocs(activeId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeId]);
-
-  async function createNew() {
-    setMsg(null);
-
-    const { data: auth } = await supabase.auth.getUser();
-    const user = auth.user;
-    if (!user) return (window.location.href = "/members/login");
-
-    setSaving(true);
-    const { data, error } = await (supabase as any)`n      .from("projects")`n      .insert({
+    const { data, error } = await (supabase as any).from("projects").insert({
         owner_id: user.id,
         owner_email: user.email,
         title: "New Project",
