@@ -267,7 +267,7 @@ export default function MemberDashboardPage() {
               <div className="flex items-center justify-between">
                 <div className="text-sm font-semibold">Your Projects</div>
                 <button
-                  onClick={createNew}
+                  onClick={loadProjects}
                   disabled={saving}
                   className="rounded-xl bg-emerald-700 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-800 disabled:opacity-60"
                 >
