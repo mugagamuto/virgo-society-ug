@@ -112,7 +112,14 @@ export default function MemberDashboardPage() {
       return;
     }
 
-    const { data: authData, error: authErr } = await supabase.auth.getUser();`r`n    if (authErr || !authData?.user) { setSaving(false); setMsg("You must be logged in."); return; }`r`n    const { data, error } = await (supabase as any).from("projects").insert({
+    const { data: authData, error: authErr } = await supabase.auth.getUser();
+    if (authErr || !authData?.user) {
+      setSaving(false);
+      setMsg("You must be logged in.");
+      return;
+    }
+
+    const { data, error } = await (supabase as any).from("projects").insert({
         owner_id: authData.user.id,
         owner_email: authData.user.email,
         title: "New Project",
