@@ -158,9 +158,9 @@ export default function MemberDashboardPage() {
     if (membersCount && (!Number.isFinite(mc) || (mc ?? 0) <= 0)) return setMsg("Members count must be a number.");
 
     setSaving(true);
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from("projects")
-      .update({
+      .update(({
         org_name: orgName.trim() || null,
         members_count: mc,
         location: location.trim() || null,
@@ -237,9 +237,9 @@ export default function MemberDashboardPage() {
     if (!readyDocs) return setMsg("Upload required documents first (registration form, registration documents, NIN/ID, passport photo).");
 
     setSubmitting(true);
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from("projects")
-      .update({ status: "submitted", submitted_at: new Date().toISOString() })
+      .update(({ status: "submitted", submitted_at: new Date().toISOString() })
       .eq("id", active.id);
 
     setSubmitting(false);
