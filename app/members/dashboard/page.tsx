@@ -203,13 +203,13 @@ export default function MemberDashboardPage() {
       return setMsg(upErr.message);
     }
 
-    const { error: insErr } = await supabase.from("project_documents").insert({
+    const { error: insErr } = await supabase.from("project_documents").insert(({
       project_id: active.id,
       owner_id: auth.user.id,
       doc_type: docType,
       file_path: path,
       original_name: file.name,
-    });
+    } as any));
 
     setUploading(false);
     if (insErr) return setMsg(insErr.message);
