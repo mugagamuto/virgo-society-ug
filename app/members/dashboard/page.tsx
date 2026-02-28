@@ -216,7 +216,7 @@ export default function MemberDashboardPage() {
 
     setFile(null);
     setMsg("✅ Uploaded.");
-    loadDocs(active.id);
+    loadProjects();
   }
 
   async function viewDoc(path: string) {
