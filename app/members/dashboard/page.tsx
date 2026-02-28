@@ -160,8 +160,7 @@ export default function MemberDashboardPage() {
     setSaving(true);
     const { error } = await (supabase as any)
       .from("projects")
-      .update(({
-        org_name: orgName.trim() || null,
+      .update(({org_name: orgName.trim() || null,
         members_count: mc,
         location: location.trim() || null,
         district: district.trim() || null,
@@ -169,8 +168,7 @@ export default function MemberDashboardPage() {
         description: description.trim(),
         goals: goals.trim(),
         stage: stage.trim(),
-        budget_ugx: b,
-      })
+        budget_ugx: b,} as any))
       .eq("id", active.id);
 
     setSaving(false);
@@ -239,7 +237,7 @@ export default function MemberDashboardPage() {
     setSubmitting(true);
     const { error } = await (supabase as any)
       .from("projects")
-      .update(({ status: "submitted", submitted_at: new Date().toISOString() })
+      .update(({status: "submitted", submitted_at: new Date().toISOString()} as any))
       .eq("id", active.id);
 
     setSubmitting(false);
