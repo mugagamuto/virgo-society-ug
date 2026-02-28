@@ -120,7 +120,7 @@ export default function MemberDashboardPage() {
     }
 
     const { data, error } = await (supabase as any).from("projects").insert({
-        owner_id: authData.user.id,
+        owner_id: auth.user.id,
         owner_email: authData.user.email,
         title: "New Project",
         description: "Describe your project…",
@@ -190,7 +190,7 @@ export default function MemberDashboardPage() {
     if (!user) return (window.location.href = "/members/login");
 
     const safeName = file.name.replace(/[^\w.\-() ]/g, "_");
-    const path = `users/${authData.user.id}/projects/${active.id}/${Date.now()}-${safeName}`;
+    const path = `users/${auth.user.id}/projects/${active.id}/${Date.now()}-${safeName}`;
 
     setUploading(true);
 
@@ -205,7 +205,7 @@ export default function MemberDashboardPage() {
 
     const { error: insErr } = await supabase.from("project_documents").insert({
       project_id: active.id,
-      owner_id: authData.user.id,
+      owner_id: auth.user.id,
       doc_type: docType,
       file_path: path,
       original_name: file.name,
