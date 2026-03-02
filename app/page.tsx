@@ -25,16 +25,6 @@ export default function HomePage() {
       {/* NAV (NO admin login here) */}
       <header className="border-b border-black/10 bg-white/80 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-4">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl border border-black/10 bg-gradient-to-br from-emerald-200 via-white to-emerald-50">
-              <span className="text-sm font-bold text-black/70">V</span>
-            </div>
-            <div>
-              <div className="text-sm font-semibold leading-tight">Virgo Building Society</div>
-              <div className="text-xs text-black/60">Build hope. Fund impact.</div>
-            </div>
-          </Link>
-
           <nav className="flex items-center gap-2">
             <Link
               href="/donors"
