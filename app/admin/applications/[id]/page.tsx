@@ -79,7 +79,7 @@ export default function AdminApplicationDetail() {
       const { json, text } = await safeJson(res);
       if (!json) throw new Error(`doc-url returned non-JSON (${res.status}). ${text.slice(0, 200)}`);
       if (!res.ok || !json.ok) throw new Error(json?.error?.message ?? json?.error ?? "Failed to create link");
-      window.open(json.signedUrl, "_blank");
+      console.log("signedUrl:", json.signedUrl); window.open(json.signedUrl, "_blank");
     } catch (e: any) {
       setMsg(e?.message ?? "Failed to open document.");
     }
