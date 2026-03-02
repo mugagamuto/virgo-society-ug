@@ -172,7 +172,7 @@ export default function AdminGalleryPage() {
 
       updateRow(r.id, { image_url: publicUrl });
 
-      const { error: saveErr } = await supabase.from("home_gallery_items").update({ image_url: publicUrl }).eq("id", r.id);
+      const { error: saveErr } = await (supabase as any).from("home_gallery_items").update({ image_url: publicUrl }).eq("id", r.id);
       if (saveErr) throw saveErr;
 
       setMsg("Uploaded ✅");
