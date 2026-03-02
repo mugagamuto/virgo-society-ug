@@ -19,12 +19,8 @@ async function safeJson(res: Response) {
 
 export default function AdminApplicationDetail() {
   const params = useParams();
-  const id =
-    typeof (params as any)?.id === "string"
-      ? ((params as any).id as string)
-      : Array.isArray((params as any)?.id)
-      ? (((params as any).id as string[])[0] ?? "")
-      : "";
+  const raw = (params as any)?.id;
+  const id = typeof raw === "string" ? raw : Array.isArray(raw) ? raw[0] : "";
 
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
@@ -35,7 +31,6 @@ export default function AdminApplicationDetail() {
     setLoading(true);
     setErr(null);
     setMsg(null);
-
     try {
       const res = await fetch(`/api/admin/applications/${encodeURIComponent(appId)}`, { cache: "no-store" });
       const { json, text } = await safeJson(res);
@@ -59,12 +54,10 @@ export default function AdminApplicationDetail() {
   async function approve() {
     if (!id) return;
     setMsg(null);
-
     const res = await fetch(`/api/admin/applications/${encodeURIComponent(id)}/approve`, { method: "POST" });
     const { json, text } = await safeJson(res);
     if (!json) return setMsg(`Approve API returned non-JSON (${res.status}). ${text.slice(0, 200)}`);
     if (!res.ok || !json.ok) return setMsg(json?.error?.message ?? json?.error ?? "Approve failed");
-
     setMsg("Approved & published.");
     await load(id);
   }
@@ -72,12 +65,10 @@ export default function AdminApplicationDetail() {
   async function reject() {
     if (!id) return;
     setMsg(null);
-
     const res = await fetch(`/api/admin/applications/${encodeURIComponent(id)}/reject`, { method: "POST" });
     const { json, text } = await safeJson(res);
     if (!json) return setMsg(`Reject API returned non-JSON (${res.status}). ${text.slice(0, 200)}`);
     if (!res.ok || !json.ok) return setMsg(json?.error?.message ?? json?.error ?? "Reject failed");
-
     setMsg("Rejected.");
     await load(id);
   }
@@ -159,9 +150,7 @@ export default function AdminApplicationDetail() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <div className="text-xs text-mutedInk">
-                        {d.created_at ? new Date(d.created_at).toLocaleString() : ""}
-                      </div>
+                      <div className="text-xs text-mutedInk">{d.created_at ? new Date(d.created_at).toLocaleString() : ""}</div>
                       <button
                         className="rounded-xl border border-black/10 px-3 py-1.5 text-sm font-medium hover:bg-black/[0.03]"
                         onClick={() => {
