@@ -24,8 +24,21 @@ type Project = {
   created_at: string;
 };
 
-export default function AdminApplicationDetail({ params }: { params: { id: string } }) {
-  const id = params.id;
+function isUuid(v: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
+}
+
+function getIdFromPath() {
+  if (typeof window === "undefined") return null;
+  const parts = window.location.pathname.split("/").filter(Boolean);
+  return parts[parts.length - 1] ?? null;
+}
+
+export default function AdminApplicationDetail(props: any) {
+  // Prefer params.id, but fall back to reading from the URL path
+  const routeId = props?.params?.id ?? null;
+  const pathId = getIdFromPath();
+  const id = (routeId || pathId || "") as string;
 
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
@@ -43,7 +56,14 @@ export default function AdminApplicationDetail({ params }: { params: { id: strin
     setMsg(null);
 
     try {
-      // Load application (URL id is APPLICATION id)
+      if (!id || id === "undefined" || !isUuid(id)) {
+        setAppRow(null);
+        setProject(null);
+        setErr(`Invalid application ID: ${String(id)}`);
+        return;
+      }
+
+      // Load application
       const { data: app, error: appErr } = await (supabase as any)
         .from("support_applications")
         .select("*")
@@ -60,9 +80,9 @@ export default function AdminApplicationDetail({ params }: { params: { id: strin
 
       setAppRow(app as SupportApp);
 
-      // Load related project (if application has project_id)
+      // Load related project if project_id exists and is a uuid
       const pid = (app as any).project_id as string | null;
-      if (!pid) {
+      if (!pid || !isUuid(pid)) {
         setProject(null);
         return;
       }
@@ -138,20 +158,14 @@ export default function AdminApplicationDetail({ params }: { params: { id: strin
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Project Review</h1>
           <p className="mt-1 text-sm text-mutedInk">Approve/reject and optionally list on Fund a Project.</p>
-          <div className="mt-2 text-xs text-mutedInk">ID: {id}</div>
+          <div className="mt-2 text-xs text-mutedInk">ID: {id || "—"}</div>
         </div>
 
         <div className="flex gap-2">
-          <Link
-            href="/admin/applications"
-            className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/[0.03]"
-          >
+          <Link href="/admin/applications" className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/[0.03]">
             ← Back
           </Link>
-          <button
-            onClick={load}
-            className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/[0.03]"
-          >
+          <button onClick={load} className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/[0.03]">
             Refresh
           </button>
         </div>
@@ -163,9 +177,7 @@ export default function AdminApplicationDetail({ params }: { params: { id: strin
         <div className="mt-6 rounded-3xl border border-red-200 bg-red-50 p-5 text-sm text-red-800">{err}</div>
       ) : (
         <div className="mt-6 space-y-4">
-          {msg ? (
-            <div className="rounded-3xl border border-black/10 bg-white p-4 text-sm">{msg}</div>
-          ) : null}
+          {msg ? <div className="rounded-3xl border border-black/10 bg-white p-4 text-sm">{msg}</div> : null}
 
           <div className="rounded-3xl border border-black/10 bg-white p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -177,25 +189,13 @@ export default function AdminApplicationDetail({ params }: { params: { id: strin
               </div>
 
               <div className="flex flex-wrap gap-2">
-                <button
-                  disabled={saving}
-                  onClick={() => setStatus("approved")}
-                  className="rounded-2xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60"
-                >
+                <button disabled={saving} onClick={() => setStatus("approved")} className="rounded-2xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60">
                   Approve
                 </button>
-                <button
-                  disabled={saving}
-                  onClick={() => setStatus("rejected")}
-                  className="rounded-2xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60"
-                >
+                <button disabled={saving} onClick={() => setStatus("rejected")} className="rounded-2xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60">
                   Reject
                 </button>
-                <button
-                  disabled={saving}
-                  onClick={() => setStatus("pending")}
-                  className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-semibold hover:bg-black/[0.03] disabled:opacity-60"
-                >
+                <button disabled={saving} onClick={() => setStatus("pending")} className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-semibold hover:bg-black/[0.03] disabled:opacity-60">
                   Set pending
                 </button>
               </div>
@@ -231,22 +231,15 @@ export default function AdminApplicationDetail({ params }: { params: { id: strin
                 <div className="mt-1 text-xs text-mutedInk">project_id: {appRow?.project_id ?? "—"}</div>
               </div>
 
-              <button
-                disabled={saving || !project}
-                onClick={markFundable}
-                className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-semibold hover:bg-black/[0.03] disabled:opacity-60"
-                title={!project ? "Project not loaded (missing project_id or RLS blocked)" : "Mark project fundable"}
-              >
+              <button disabled={saving || !project} onClick={markFundable} className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-semibold hover:bg-black/[0.03] disabled:opacity-60">
                 Mark fundable
               </button>
             </div>
 
             {!appRow?.project_id ? (
-              <div className="mt-3 text-sm text-mutedInk">This application has no project_id saved, so there’s nothing to load here.</div>
+              <div className="mt-3 text-sm text-mutedInk">This application has no project_id saved.</div>
             ) : !project ? (
-              <div className="mt-3 text-sm text-mutedInk">
-                Project not loaded (either it doesn’t exist, or RLS blocks reads). You can still approve/reject the application above.
-              </div>
+              <div className="mt-3 text-sm text-mutedInk">Project not loaded (not found or RLS blocked).</div>
             ) : (
               <div className="mt-4 grid gap-3 md:grid-cols-3">
                 <div className="rounded-2xl border border-black/10 p-4">
