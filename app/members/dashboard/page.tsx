@@ -149,6 +149,12 @@ export default function MemberDashboard() {
 
   useEffect(() => { load(); }, []);
 
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    document.body.style.overflow = showCreate ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [showCreate]);
+
   return (
     <div className="max-w-5xl">
       <div className="flex items-start justify-between gap-4">
@@ -213,7 +219,7 @@ export default function MemberDashboard() {
       {/* Create Project Modal */}
       {showCreate ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-3xl rounded-3xl bg-white p-6 shadow-xl">
+          <div className="w-full max-w-3xl max-h-[85vh] overflow-y-auto rounded-3xl bg-white p-6 shadow-xl">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="text-lg font-semibold">Create a new project</div>
