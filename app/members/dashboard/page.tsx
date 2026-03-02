@@ -4,290 +4,246 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase-browser";
 
-type Project = {
+type ProjectRow = {
   id: string;
   title: string | null;
   org_name: string | null;
   district: string | null;
   status: string | null;
   is_fundable: boolean | null;
+  goal_ugx: number | null;
+  funded_ugx: number | null;
+  amount_raised_ugx: number | null;
   created_at: string;
-  goal_ugx?: number | null;
-  funded_ugx?: number | null;
-  budget_ugx?: number | null;
+  updated_at: string | null;
 };
 
-type ApiOk = { ok: true; data: Project[] };
-type ApiErr = { ok: false; error: any };
-type ApiResp = ApiOk | ApiErr;
+type MemberRow = {
+  user_id: string;
+  org_name: string | null;
+  contact_name: string | null;
+  phone: string | null;
+  email: string | null;
+  location: string | null;
+  district: string | null;
+  status: string | null;
+  created_at: string | null;
+};
 
-async function safeJson(res: Response) {
-  const text = await res.text();
+function fmtUGX(n: number) {
   try {
-    return { json: JSON.parse(text), text };
+    return new Intl.NumberFormat("en-UG").format(n);
   } catch {
-    return { json: null as any, text };
+    return String(n);
   }
 }
 
-function fmtUgx(n?: number | null) {
-  if (n === null || n === undefined) return "—";
-  return `UGX ${Number(n).toLocaleString()}`;
+function Card({ title, value, sub }: { title: string; value: string; sub?: string }) {
+  return (
+    <div className="rounded-3xl border border-black/10 bg-white p-5 shadow-sm">
+      <div className="text-xs font-semibold tracking-widest text-mutedInk uppercase">{title}</div>
+      <div className="mt-2 text-2xl font-semibold tracking-tight">{value}</div>
+      {sub ? <div className="mt-1 text-xs text-mutedInk">{sub}</div> : null}
+    </div>
+  );
 }
 
 export default function MemberDashboard() {
   const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState<string | null>(null);
-  const [projects, setProjects] = useState<Project[]>([]);
   const [msg, setMsg] = useState<string | null>(null);
-
-  // Create modal/form
-  const [showCreate, setShowCreate] = useState(false);
-  const [creating, setCreating] = useState(false);
-
-  const [title, setTitle] = useState("");
-  const [orgName, setOrgName] = useState("");
-  const [district, setDistrict] = useState("");
-  const [budgetUgx, setBudgetUgx] = useState("");
-  const [goalUgx, setGoalUgx] = useState("");
-  const [description, setDescription] = useState("");
-  const [goals, setGoals] = useState("");
-  const [stage, setStage] = useState("proposal");
-
-  const canCreate = useMemo(() => {
-    return title.trim().length >= 3 && orgName.trim().length >= 2 && district.trim().length >= 2;
-  }, [title, orgName, district]);
+  const [member, setMember] = useState<MemberRow | null>(null);
+  const [projects, setProjects] = useState<ProjectRow[]>([]);
 
   async function load() {
     setLoading(true);
-    setErr(null);
     setMsg(null);
 
-    try {
-      const { data: sess, error: sErr } = await supabase.auth.getSession();
-      if (sErr) throw sErr;
-      const token = sess?.session?.access_token;
-      if (!token) throw new Error("You are not logged in. Please log in again.");
-
-      const res = await fetch("/api/members/projects", {
-        headers: { Authorization: `Bearer ${token}` },
-        cache: "no-store",
-      });
-
-      const { json, text } = await safeJson(res);
-      if (!json) throw new Error(`API returned non-JSON (${res.status}). ${text.slice(0, 200)}`);
-
-      const payload = json as ApiResp;
-      if (!res.ok || !payload.ok) {
-        const m = (payload as any)?.error?.message ?? (payload as any)?.error ?? `HTTP ${res.status}`;
-        throw new Error(m);
-      }
-
-      setProjects(payload.data ?? []);
-    } catch (e: any) {
-      setErr(e?.message ?? "Failed to load projects.");
-      setProjects([]);
-    } finally {
+    const { data: auth } = await supabase.auth.getUser();
+    const uid = auth?.user?.id;
+    if (!uid) {
+      setMsg("Please login to view your dashboard.");
       setLoading(false);
-    }
-  }
-
-  async function createProject() {
-    setMsg(null);
-    setErr(null);
-
-    if (!canCreate) {
-      setMsg("Please fill Title, Organization name, and District.");
       return;
     }
 
-    setCreating(true);
-    try {
-      const { data: sess, error: sErr } = await supabase.auth.getSession();
-      if (sErr) throw sErr;
-      const userId = sess?.session?.user?.id;
-      if (!userId) throw new Error("Not logged in.");
+    const { data: m, error: mErr } = await supabase
+      .from("members")
+      .select("user_id,org_name,contact_name,phone,email,location,district,status,created_at")
+      .eq("user_id", uid)
+      .maybeSingle();
 
-      const b = budgetUgx.trim() ? Number(budgetUgx.replace(/,/g, "")) : null;
-      const g = goalUgx.trim() ? Number(goalUgx.replace(/,/g, "")) : null;
+    if (mErr) setMsg(mErr.message);
+    setMember((m as any) ?? null);
 
-      const payload: any = {
-        owner_id: userId,
-        title: title.trim(),
-        org_name: orgName.trim(),
-        district: district.trim(),
-        location: "Uganda",
-        description: description.trim() || null,
-        goals: goals.trim() || null,
-        stage: stage,
-        budget_ugx: Number.isFinite(b as any) ? b : null,
-        goal_ugx: Number.isFinite(g as any) ? g : null,
-        status: "draft",
-        is_fundable: false,
-        funded_ugx: 0,
-        amount_raised_ugx: 0,
-        submitted_at: null,
-      };
+    const { data: p, error: pErr } = await supabase
+      .from("projects")
+      .select("id,title,org_name,district,status,is_fundable,goal_ugx,funded_ugx,amount_raised_ugx,created_at,updated_at")
+      .eq("owner_id", uid)
+      .order("created_at", { ascending: false });
 
-      // Use browser supabase (RLS must allow owner insert)
-      const { data, error } = await (supabase as any).from("projects").insert(payload).select("id,title,org_name,district,status,is_fundable,created_at,goal_ugx,funded_ugx,budget_ugx").single();
+    if (pErr) setMsg(pErr.message);
+    setProjects((p as any) ?? []);
 
-      if (error) throw error;
-
-      setShowCreate(false);
-      setTitle(""); setOrgName(""); setDistrict(""); setBudgetUgx(""); setGoalUgx("");
-      setDescription(""); setGoals(""); setStage("proposal");
-
-      setMsg("Project created. Now open it to upload documents and submit for review.");
-      setProjects((prev) => [data as Project, ...prev]);
-    } catch (e: any) {
-      setErr(e?.message ?? "Failed to create project.");
-    } finally {
-      setCreating(false);
-    }
+    setLoading(false);
   }
 
-  useEffect(() => { load(); }, []);
-
   useEffect(() => {
-    if (typeof document === "undefined") return;
-    document.body.style.overflow = showCreate ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
-  }, [showCreate]);
+    load();
+  }, []);
+
+  const metrics = useMemo(() => {
+    const total = projects.length;
+    const pending = projects.filter((p) => (p.status || "").toLowerCase() === "pending").length;
+    const approved = projects.filter((p) => (p.status || "").toLowerCase() === "approved").length;
+    const fundable = projects.filter((p) => !!p.is_fundable).length;
+
+    const totalGoal = projects.reduce((a, p) => a + Number(p.goal_ugx ?? 0), 0);
+    const totalFunded = projects.reduce((a, p) => a + Number(p.funded_ugx ?? p.amount_raised_ugx ?? 0), 0);
+
+    return { total, pending, approved, fundable, totalGoal, totalFunded };
+  }, [projects]);
+
+  const fundedProjects = useMemo(() => {
+    return projects
+      .map((p) => ({
+        ...p,
+        raised: Number(p.funded_ugx ?? p.amount_raised_ugx ?? 0),
+        goal: Number(p.goal_ugx ?? 0),
+      }))
+      .filter((p) => p.raised > 0 || !!p.is_fundable)
+      .sort((a, b) => (b.raised ?? 0) - (a.raised ?? 0));
+  }, [projects]);
+
+  const greetingName = member?.contact_name || member?.org_name || "Member";
 
   return (
-    <div className="max-w-5xl">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Member Projects</h1>
-          <p className="mt-1 text-sm text-mutedInk">Create projects, upload documents, and submit each for admin review.</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowCreate(true)}
-            className="rounded-2xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
-          >
-            + Create Project
-          </button>
-          <Link href="/" className="text-sm font-medium hover:underline">← Back</Link>
+    <div className="min-h-screen bg-white">
+      <div className="border-b border-black/10 bg-white">
+        <div className="mx-auto max-w-6xl px-4 py-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="text-xs font-semibold tracking-widest text-mutedInk uppercase">Member Portal</div>
+              <h1 className="mt-1 text-2xl font-semibold tracking-tight">Welcome, {greetingName}</h1>
+              <p className="mt-1 text-sm text-mutedInk">
+                Track your projects, upload documents, submit for review, and monitor funding progress.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href="/members/profile"
+                className="inline-flex items-center justify-center rounded-2xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold hover:bg-black/[0.02]"
+              >
+                Profile
+              </Link>
+              <Link
+                href="/members/change-password"
+                className="inline-flex items-center justify-center rounded-2xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold hover:bg-black/[0.02]"
+              >
+                Change Password
+              </Link>
+              <Link
+                href="/members/dashboard"
+                className="inline-flex items-center justify-center rounded-2xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
+              >
+                Refresh
+              </Link>
+            </div>
+          </div>
+
+          {msg ? <div className="mt-3 text-sm text-red-700">{msg}</div> : null}
         </div>
       </div>
 
-      {msg ? <div className="mt-4 rounded-2xl border border-black/10 bg-white p-3 text-sm">{msg}</div> : null}
-      {err ? <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{err}</div> : null}
-
-      <div className="mt-6 rounded-3xl border border-black/10 bg-white p-5">
-        <div className="flex items-center justify-between">
-          <div className="text-sm font-semibold">Your projects</div>
-          <button onClick={load} className="rounded-xl border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/[0.03]">
-            Refresh
-          </button>
-        </div>
-
+      <div className="mx-auto max-w-6xl px-4 py-8">
         {loading ? (
-          <div className="mt-4 text-sm text-mutedInk">Loading…</div>
-        ) : projects.length === 0 ? (
-          <div className="mt-4 text-sm text-mutedInk">No projects yet.</div>
+          <div className="rounded-3xl border border-black/10 bg-black/[0.02] p-6 text-sm text-mutedInk">Loading…</div>
         ) : (
-          <div className="mt-4 space-y-3">
-            {projects.map((p) => (
-              <div key={p.id} className="rounded-2xl border border-black/10 p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="text-sm font-semibold">{p.title ?? "Untitled project"}</div>
-                    <div className="mt-1 text-xs text-mutedInk">
-                      {p.org_name ?? "—"} • {p.district ?? "—"} • Status: {p.status ?? "—"} • Fundable: {p.is_fundable ? "Yes" : "No"}
-                    </div>
-                    <div className="mt-2 text-xs text-mutedInk">
-                      Goal: {fmtUgx(p.goal_ugx)} • Budget: {fmtUgx(p.budget_ugx)} • Raised: {fmtUgx(p.funded_ugx)}
-                    </div>
-                  </div>
+          <>
+            <div className="grid gap-3 md:grid-cols-3">
+              <Card title="Projects" value={String(metrics.total)} sub={`${metrics.pending} pending • ${metrics.approved} approved`} />
+              <Card title="Fundable" value={String(metrics.fundable)} sub="Approved and visible on Fund a Project" />
+              <Card title="Total funded" value={`UGX ${fmtUGX(metrics.totalFunded)}`} sub={`Total goal UGX ${fmtUGX(metrics.totalGoal)}`} />
+            </div>
 
-                  <Link
-                    href={`/members/projects/${encodeURIComponent(p.id)}`}
-                    className="rounded-xl border border-black/10 px-3 py-2 text-sm font-medium hover:bg-black/[0.03]"
-                  >
-                    Open →
-                  </Link>
+            <div className="mt-6 rounded-3xl border border-black/10 bg-white p-6 shadow-sm">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <div className="text-sm font-semibold">Your projects</div>
+                  <div className="text-xs text-mutedInk">Open a project to upload documents and submit for admin review.</div>
                 </div>
+                <Link
+                  href="/members/dashboard"
+                  className="inline-flex items-center justify-center rounded-2xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold hover:bg-black/[0.02]"
+                >
+                  Refresh
+                </Link>
               </div>
-            ))}
-          </div>
+
+              {projects.length === 0 ? (
+                <div className="mt-4 rounded-2xl border border-black/10 bg-black/[0.02] p-4 text-sm text-mutedInk">
+                  No projects yet. Use “Create Project” on this page (top action) or ask admin to enable it if hidden.
+                </div>
+              ) : (
+                <div className="mt-4 grid gap-3">
+                  {projects.map((p) => (
+                    <div key={p.id} className="rounded-2xl border border-black/10 p-4">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <div className="text-sm font-semibold">{p.title || "Untitled project"}</div>
+                          <div className="mt-1 text-xs text-mutedInk">
+                            {(p.org_name || "").trim()} {p.district ? `• ${p.district}` : ""} • Status: {p.status || "draft"} • Fundable:{" "}
+                            {p.is_fundable ? "Yes" : "No"}
+                          </div>
+                          <div className="mt-1 text-xs text-mutedInk">
+                            Goal: UGX {fmtUGX(Number(p.goal_ugx ?? 0))} • Funded: UGX {fmtUGX(Number(p.funded_ugx ?? p.amount_raised_ugx ?? 0))}
+                          </div>
+                        </div>
+
+                        <Link
+                          href={`/members/projects/${p.id}`}
+                          className="inline-flex items-center justify-center rounded-2xl bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-black/90"
+                        >
+                          Open →
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6 rounded-3xl border border-black/10 bg-white p-6 shadow-sm">
+              <div className="text-sm font-semibold">Funding progress</div>
+              <div className="text-xs text-mutedInk">Projects with funding activity or marked as fundable.</div>
+
+              {fundedProjects.length === 0 ? (
+                <div className="mt-4 text-sm text-mutedInk">No funding activity yet.</div>
+              ) : (
+                <div className="mt-4 grid gap-3">
+                  {fundedProjects.slice(0, 6).map((p) => {
+                    const pct = p.goal > 0 ? Math.min(100, Math.round((p.raised / p.goal) * 100)) : 0;
+                    return (
+                      <div key={p.id} className="rounded-2xl border border-black/10 p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="text-sm font-semibold">{p.title || "Project"}</div>
+                          <div className="text-xs text-mutedInk">{pct}%</div>
+                        </div>
+                        <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-black/10">
+                          <div className="h-full bg-emerald-700" style={{ width: `${pct}%` }} />
+                        </div>
+                        <div className="mt-2 text-xs text-mutedInk">
+                          UGX {fmtUGX(p.raised)} raised • Goal UGX {fmtUGX(p.goal)}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </>
         )}
       </div>
-
-      {/* Create Project Modal */}
-      {showCreate ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-3xl max-h-[85vh] overflow-y-auto rounded-3xl bg-white p-6 shadow-xl">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="text-lg font-semibold">Create a new project</div>
-                <div className="mt-1 text-sm text-mutedInk">Save as draft first. After upload documents, submit for review.</div>
-              </div>
-              <button onClick={() => setShowCreate(false)} className="rounded-xl border border-black/10 px-3 py-2 text-sm font-medium hover:bg-black/[0.03]">
-                Close
-              </button>
-            </div>
-
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <div>
-                <label className="text-sm font-medium">Project title *</label>
-                <input className="mt-2 w-full rounded-xl border border-black/10 px-3 py-3 text-sm" value={title} onChange={(e) => setTitle(e.target.value)} />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Organization name *</label>
-                <input className="mt-2 w-full rounded-xl border border-black/10 px-3 py-3 text-sm" value={orgName} onChange={(e) => setOrgName(e.target.value)} />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium">District *</label>
-                <input className="mt-2 w-full rounded-xl border border-black/10 px-3 py-3 text-sm" value={district} onChange={(e) => setDistrict(e.target.value)} />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Stage</label>
-                <select className="mt-2 w-full rounded-xl border border-black/10 px-3 py-3 text-sm" value={stage} onChange={(e) => setStage(e.target.value)}>
-                  <option value="proposal">Proposal</option>
-                  <option value="pilot">Pilot</option>
-                  <option value="active">Active</option>
-                  <option value="scaling">Scaling</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium">Budget (UGX)</label>
-                <input className="mt-2 w-full rounded-xl border border-black/10 px-3 py-3 text-sm" value={budgetUgx} onChange={(e) => setBudgetUgx(e.target.value)} placeholder="e.g. 5000000" />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Goal (UGX)</label>
-                <input className="mt-2 w-full rounded-xl border border-black/10 px-3 py-3 text-sm" value={goalUgx} onChange={(e) => setGoalUgx(e.target.value)} placeholder="e.g. 5000000" />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="text-sm font-medium">Description</label>
-                <textarea className="mt-2 w-full rounded-xl border border-black/10 px-3 py-3 text-sm" rows={4} value={description} onChange={(e) => setDescription(e.target.value)} />
-              </div>
-              <div className="md:col-span-2">
-                <label className="text-sm font-medium">Goals</label>
-                <textarea className="mt-2 w-full rounded-xl border border-black/10 px-3 py-3 text-sm" rows={3} value={goals} onChange={(e) => setGoals(e.target.value)} />
-              </div>
-            </div>
-
-            <div className="mt-5 flex flex-col gap-3 md:flex-row md:justify-end">
-              <button onClick={() => setShowCreate(false)} className="w-full md:w-auto rounded-xl border border-black/10 px-4 py-3 text-sm font-semibold hover:bg-black/[0.03]">
-                Cancel
-              </button>
-              <button
-                disabled={!canCreate || creating}
-                onClick={createProject}
-                className="w-full md:w-auto rounded-xl bg-emerald-700 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60"
-              >
-                {creating ? "Creating…" : "Create project"}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }
