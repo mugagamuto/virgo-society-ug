@@ -24,18 +24,18 @@ export default function HomePage() {
 
       {/* NAV (NO admin login here) */}
       <header className="border-b border-black/10 bg-white/80 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-4">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-5">
           <nav className="flex items-center gap-2">
             <Link
               href="/donors"
-              className="hidden rounded-2xl px-4 py-2 text-sm font-semibold text-black/70 hover:bg-black/[0.04] md:inline-flex"
+              className="hidden rounded-2xl px-4 py-2 text-base font-semibold text-black/70 hover:bg-black/[0.04] md:inline-flex"
             >
               Fund a Project
             </Link>
 
             <Link
               href="/members/login"
-              className="rounded-2xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold hover:bg-black/[0.02]"
+              className="rounded-2xl border border-black/10 bg-white px-4 py-2 text-base font-semibold hover:bg-black/[0.02]"
             >
               Member Login
             </Link>
@@ -65,7 +65,7 @@ export default function HomePage() {
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/donors"
-                className="inline-flex items-center justify-center rounded-2xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-800"
+                className="inline-flex items-center justify-center rounded-2xl bg-emerald-700 px-5 py-3 text-base font-semibold text-white hover:bg-emerald-800"
               >
                 Fund a Project
               </Link>
@@ -75,7 +75,7 @@ export default function HomePage() {
                 href="https://wa.me/256780787228"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center justify-center rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-semibold text-emerald-900 hover:bg-emerald-100"
+                className="inline-flex items-center justify-center rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-base font-semibold text-emerald-900 hover:bg-emerald-100"
               >
                 WhatsApp Support
               </a>
@@ -131,7 +131,7 @@ export default function HomePage() {
             </div>
             <Link
               href="/donors"
-              className="hidden rounded-2xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold hover:bg-black/[0.02] md:inline-flex"
+              className="hidden rounded-2xl border border-black/10 bg-white px-4 py-2 text-base font-semibold hover:bg-black/[0.02] md:inline-flex"
             >
               View projects
             </Link>
@@ -139,15 +139,15 @@ export default function HomePage() {
 
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm">
-              <div className="text-sm font-semibold">1) Member submits</div>
+              <div className="text-base font-semibold">1) Member submits</div>
               <p className="mt-2 text-sm text-black/70">Title, description, goals, stage, proposal + budget breakdown.</p>
             </div>
             <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm">
-              <div className="text-sm font-semibold">2) Admin verifies</div>
+              <div className="text-base font-semibold">2) Admin verifies</div>
               <p className="mt-2 text-sm text-black/70">Supporting documents are admin-only. Approve/reject with notes.</p>
             </div>
             <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm">
-              <div className="text-sm font-semibold">3) Donors fund</div>
+              <div className="text-base font-semibold">3) Donors fund</div>
               <p className="mt-2 text-sm text-black/70">Approved projects appear publicly with proposal + budget + progress.</p>
             </div>
           </div>
@@ -159,14 +159,14 @@ export default function HomePage() {
         <div className="mx-auto max-w-6xl px-4 py-10">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <div className="text-sm font-semibold">Virgo Building Society</div>
+              <div className="text-base font-semibold">Virgo Building Society</div>
               <div className="mt-1 text-xs text-black/60">Transparency-first community funding.</div>
             </div>
 
             <div className="flex flex-wrap gap-2">
               <Link
                 href="/donors"
-                className="rounded-2xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold hover:bg-black/[0.02]"
+                className="rounded-2xl border border-black/10 bg-white px-4 py-2 text-base font-semibold hover:bg-black/[0.02]"
               >
                 Fund a Project
               </Link>
@@ -174,7 +174,7 @@ export default function HomePage() {
                 href="https://wa.me/256780787228"
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-2xl bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-black/90"
+                className="rounded-2xl bg-black px-4 py-2 text-base font-semibold text-white hover:bg-black/90"
               >
                 WhatsApp
               </a>
