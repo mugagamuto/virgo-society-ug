@@ -128,15 +128,15 @@ export default function MemberDashboardPage() {
       setUploading(false);
       return setMsg("No active project found. Please create/select a project first.");
     }
-
-    // Ensure file path exists for DB insert
-    const path = (typeof (uploadedPath as any) === "string" && (uploadedPath as any))
-      || (typeof (filePath as any) === "string" && (filePath as any))
-      || (typeof (storagePath as any) === "string" && (storagePath as any))
-      || (typeof ((upData as any)?.path) === "string" && (upData as any).path)
-      || members//-;
-
-    const { error: insErr } = await supabase.from("project_documents").insert(({
+    // Ensure file path exists for DB insert (TS-safe)
+    const g: any = globalThis as any;
+    const path =
+      (typeof g.uploadedPath === "string" && g.uploadedPath) ||
+      (typeof g.filePath === "string" && g.filePath) ||
+      (typeof g.storagePath === "string" && g.storagePath) ||
+      (typeof (g.upData?.path) === "string" && g.upData.path) ||
+      `members/${auth.user.id}/${Date.now()}-${file.name}`;
+const { error: insErr } = await supabase.from("project_documents").insert(({
       project_id: active.id,
       owner_id: auth.user.id,
       doc_type: docType,
