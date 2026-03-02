@@ -129,6 +129,13 @@ export default function MemberDashboardPage() {
       return setMsg("No active project found. Please create/select a project first.");
     }
 
+    // Ensure file path exists for DB insert
+    const path = (typeof (uploadedPath as any) === "string" && (uploadedPath as any))
+      || (typeof (filePath as any) === "string" && (filePath as any))
+      || (typeof (storagePath as any) === "string" && (storagePath as any))
+      || (typeof ((upData as any)?.path) === "string" && (upData as any).path)
+      || members//-;
+
     const { error: insErr } = await supabase.from("project_documents").insert(({
       project_id: active.id,
       owner_id: auth.user.id,
