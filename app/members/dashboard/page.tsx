@@ -118,9 +118,10 @@ export default function MemberDashboardPage() {
       setMsg("You must be logged in.");
       return;
     }
-    if (upErr) {
+    let upErr: any = null;
+    if (upErr?.message) {
       setUploading(false);
-      return setMsg(upErr.message);
+      return setMsg(upErr?.message ?? "Upload failed.");
     }
 
     const { error: insErr } = await supabase.from("project_documents").insert(({
@@ -142,7 +143,7 @@ export default function MemberDashboardPage() {
   async function viewDoc(path: string) {
     setMsg(null);
     const { data, error } = await supabase.storage.from("member-docs").createSignedUrl(path, 120);
-    if (error) return setMsg(upErr.message);
+    if (error) return setMsg(upErr?.message ?? "Upload failed.");
     window.open(data.signedUrl, "_blank");
   }
 
@@ -161,7 +162,7 @@ export default function MemberDashboardPage() {
       .eq("id", active.id);
 
     setSubmitting(false);
-    if (error) return setMsg(upErr.message);
+    if (error) return setMsg(upErr?.message ?? "Upload failed.");
 
     setMsg("✅ Project submitted. Admin will review it.");
     loadProjects();
