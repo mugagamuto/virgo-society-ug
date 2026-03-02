@@ -141,7 +141,7 @@ const { error: insErr } = await supabase.from("project_documents").insert(({
       owner_id: auth.user.id,
       doc_type: docType,
       file_path: path,
-      original_name: file.name,
+      original_name: (file?.name ?? "document"),
     } as any));
 
     setUploading(false);
