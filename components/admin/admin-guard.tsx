@@ -1,46 +1,73 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { usePathname, useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase-browser";
+
+function isAllowedAdmin(email?: string | null) {
+  // Optional allowlist: set NEXT_PUBLIC_ADMIN_EMAILS="a@x.com,b@y.com"
+  const raw = process.env.NEXT_PUBLIC_ADMIN_EMAILS || "";
+  const list = raw.split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
+  if (list.length === 0) return true; // if not set, allow any authenticated user
+  return !!email && list.includes(email.toLowerCase());
+}
 
 export function AdminGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [ok, setOk] = useState<boolean | null>(null);
+  const pathname = usePathname();
+
+  const [checking, setChecking] = useState(true);
+  const [denied, setDenied] = useState<string | null>(null);
 
   useEffect(() => {
-    let active = true;
+    let alive = true;
 
     async function run() {
-      const { data: auth } = await supabase.auth.getUser();
-      const uid = auth?.user?.id;
-      if (!uid) {
-        if (active) router.replace("/admin/login");
-        return;
-      }
+      setChecking(true);
+      setDenied(null);
 
-      const { data, error } = await supabase.rpc("is_admin", { uid });
-      if (error || !data) {
-        if (active) router.replace("/admin/login");
-        return;
-      }
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) throw error;
 
-      if (active) setOk(true);
+        const session = data.session;
+        if (!session?.user) {
+          if (!alive) return;
+          router.replace(`/admin/login?next=${encodeURIComponent(pathname || "/admin")}`);
+          return;
+        }
+
+        const email = session.user.email ?? null;
+        if (!isAllowedAdmin(email)) {
+          if (!alive) return;
+          setDenied("You are signed in, but your account is not allowed to access admin.");
+          return;
+        }
+
+        // OK
+      } catch (e: any) {
+        if (!alive) return;
+        setDenied(e?.message ?? "Failed to verify admin session.");
+      } finally {
+        if (!alive) return;
+        setChecking(false);
+      }
     }
 
     run();
     return () => {
-      active = false;
+      alive = false;
     };
-  }, [router]);
+  }, [router, pathname]);
 
-  if (ok !== true) {
+  if (checking) {
+    return <div className="p-6 text-sm text-mutedInk">Checking admin session…</div>;
+  }
+
+  if (denied) {
     return (
-      <div className="min-h-[60vh] grid place-items-center p-6">
-        <div className="rounded-2xl border border-black/10 bg-white p-6 shadow-sm">
-          <div className="text-lg font-semibold">Checking admin access…</div>
-          <div className="mt-1 text-sm text-mutedInk">Please wait.</div>
-        </div>
+      <div className="p-6">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{denied}</div>
       </div>
     );
   }
