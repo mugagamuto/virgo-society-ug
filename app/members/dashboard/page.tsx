@@ -135,7 +135,7 @@ export default function MemberDashboardPage() {
       (typeof g.filePath === "string" && g.filePath) ||
       (typeof g.storagePath === "string" && g.storagePath) ||
       (typeof (g.upData?.path) === "string" && g.upData.path) ||
-      `members/${auth.user.id}/${Date.now()}-${file.name}`;
+      `members/${auth.user.id}/${Date.now()}-${(file?.name ?? "document")}`;
 const { error: insErr } = await supabase.from("project_documents").insert(({
       project_id: active.id,
       owner_id: auth.user.id,
