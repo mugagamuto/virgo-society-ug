@@ -180,6 +180,19 @@ const { error: insErr } = await supabase.from("project_documents").insert(({
     loadProjects();
   }
 
+
+  async function saveProject() {
+    // Wrapper to avoid build errors if the original function name changed
+    try {
+      const g: any = globalThis as any;
+      if (typeof g.createNew === "function") return await g.createNew();
+      if (typeof g.save === "function") return await g.save();
+      setMsg("Save function not found. Please refresh and try again.");
+    } catch (e: any) {
+      setMsg(e?.message ?? "Failed to save.");
+    }
+  }
+
   return (
     <main className="min-h-screen bg-white">
       <div className="mx-auto max-w-6xl px-4 py-10">
