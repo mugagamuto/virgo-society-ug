@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -118,9 +118,9 @@ export default function MemberDashboardPage() {
       setMsg("You must be logged in.");
       return;
     }
-    if (upErr) {
+    if (error) {
       setUploading(false);
-      return setMsg(upErr.message);
+      return setMsg(error.message);
     }
 
     const { error: insErr } = await supabase.from("project_documents").insert(({
