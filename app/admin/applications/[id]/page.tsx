@@ -4,9 +4,14 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
-type ApiResp =
-  | { ok: true; application: any; project: any; documents: any[] }
-  | { ok: false; error: any };
+type ApiOk = { ok: true; application: any; project: any; documents: any[] };
+type ApiErr = { ok: false; error: any };
+type ApiResp = ApiOk | ApiErr;
+
+async function safeJson(res: Response) {
+  const text = await res.text();
+  try { return { json: JSON.parse(text), text }; } catch { return { json: null, text }; }
+}
 
 export default function AdminApplicationDetail() {
   const params = useParams();
@@ -24,14 +29,17 @@ export default function AdminApplicationDetail() {
 
     try {
       const res = await fetch(`/api/admin/applications/${encodeURIComponent(appId)}`, { cache: "no-store" });
-      const json = (await res.json()) as ApiResp;
+      const { json, text } = await safeJson(res);
 
-      if (!res.ok || !json.ok) {
-        const m = (json as any)?.error?.message ?? (json as any)?.error ?? `HTTP ${res.status}`;
+      if (!json) throw new Error(`API returned non-JSON (${res.status}). ${text.slice(0, 200)}`);
+      const payload = json as ApiResp;
+
+      if (!res.ok || !payload.ok) {
+        const m = (payload as any)?.error?.message ?? (payload as any)?.error ?? `HTTP ${res.status}`;
         throw new Error(m);
       }
 
-      setData({ application: (json as any).application, project: (json as any).project, documents: (json as any).documents ?? [] });
+      setData({ application: payload.application, project: payload.project, documents: payload.documents ?? [] });
     } catch (e: any) {
       setErr(e?.message ?? "Failed to load.");
       setData(null);
@@ -43,9 +51,13 @@ export default function AdminApplicationDetail() {
   async function approve() {
     if (!id) return;
     setMsg(null);
+
     const res = await fetch(`/api/admin/applications/${encodeURIComponent(id)}/approve`, { method: "POST" });
-    const json = await res.json();
+    const { json, text } = await safeJson(res);
+
+    if (!json) return setMsg(`Approve API returned non-JSON (${res.status}). ${text.slice(0, 200)}`);
     if (!res.ok || !json.ok) return setMsg(json?.error?.message ?? json?.error ?? "Approve failed");
+
     setMsg("Approved & published.");
     await load(id);
   }
@@ -53,9 +65,13 @@ export default function AdminApplicationDetail() {
   async function reject() {
     if (!id) return;
     setMsg(null);
+
     const res = await fetch(`/api/admin/applications/${encodeURIComponent(id)}/reject`, { method: "POST" });
-    const json = await res.json();
+    const { json, text } = await safeJson(res);
+
+    if (!json) return setMsg(`Reject API returned non-JSON (${res.status}). ${text.slice(0, 200)}`);
     if (!res.ok || !json.ok) return setMsg(json?.error?.message ?? json?.error ?? "Reject failed");
+
     setMsg("Rejected.");
     await load(id);
   }
