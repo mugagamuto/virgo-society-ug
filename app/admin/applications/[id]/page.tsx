@@ -1,141 +1,186 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 
+type Status = "draft" | "submitted" | "pending" | "approved" | "rejected";
+
 type Row = {
   id: string;
-  title: string;
+  title: string | null;
   org_name: string | null;
   location: string | null;
   district: string | null;
-  status: "draft" | "submitted" | "pending" | "approved" | "rejected";
+  status: Status | string;
   is_fundable: boolean;
   admin_note: string | null;
+  submitted_at: string | null;
   created_at: string;
   updated_at: string;
 };
 
+function normalizeId(v: unknown) {
+  if (!v) return "";
+  if (Array.isArray(v)) return String(v[0] ?? "");
+  return String(v);
+}
+
+function normalizeStatus(v: any): Status {
+  const allowed: Status[] = ["draft", "submitted", "pending", "approved", "rejected"];
+  return allowed.includes(v) ? v : "pending";
+}
+
 export default function AdminApplicationDetailPage() {
   const params = useParams();
-  const id = useMemo(() => {
-    const v = (params as any)?.id;
-    return typeof v === "string" && v.length > 10 ? v : null;
-  }, [params]);
+  const id = useMemo(() => normalizeId((params as any)?.id), [params]);
 
   const [row, setRow] = useState<Row | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
 
-  const [status, setStatus] = useState<Row["status"]>("pending");
+  const [status, setStatus] = useState<Status>("pending");
   const [fundable, setFundable] = useState(false);
   const [note, setNote] = useState("");
 
-  async function load() {
-    setMsg(null);
-
+  const load = useCallback(async () => {
     if (!id) {
-      setLoading(false);
       setRow(null);
-      setMsg("Missing project id in the URL. Go back and open the project again.");
+      setErr("Missing application id in the URL. Check your route: /admin/applications/[id]");
+      setLoading(false);
       return;
     }
 
     setLoading(true);
+    setErr(null);
 
     const { data, error } = await supabase
       .from("projects")
-      .select("id,title,org_name,location,district,status,is_fundable,admin_note,created_at,updated_at")
+      .select(
+        "id,title,org_name,location,district,status,is_fundable,admin_note,submitted_at,created_at,updated_at"
+      )
       .eq("id", id)
-      .single();
+      .maybeSingle();
 
-    setLoading(false);
+    if (error) {
+      setErr(error.message);
+      setRow(null);
+      setLoading(false);
+      return;
+    }
 
-    if (error) return setMsg(error.message);
+    if (!data) {
+      setErr("Project not found (or blocked by RLS policies).");
+      setRow(null);
+      setLoading(false);
+      return;
+    }
 
     const r = data as Row;
     setRow(r);
-    setStatus(r.status);
+    setStatus(normalizeStatus(r.status));
     setFundable(!!r.is_fundable);
     setNote(r.admin_note ?? "");
-  }
+    setLoading(false);
+  }, [id]);
 
-  async function save() {
-    if (!id || !row) return;
+  const save = useCallback(
+    async (next?: Partial<{ status: Status; is_fundable: boolean }>) => {
+      if (!id) return;
 
-    setSaving(true);
-    setMsg(null);
+      setSaving(true);
+      setErr(null);
 
-    const payload = { status, is_fundable: fundable, admin_note: note };
+      const payload = {
+        status: next?.status ?? status,
+        is_fundable: next?.is_fundable ?? fundable,
+        admin_note: note,
+        updated_at: new Date().toISOString(),
+      };
 
-    // cast supabase to any to avoid TS "never" typing issues in production builds
-    const { error } = await (supabase as any)
-      .from("projects")
-      .update(payload)
-      .eq("id", id);
+      const { error } = await supabase.from("projects").update(payload as any).eq("id", id);
 
-    setSaving(false);
+      setSaving(false);
 
-    if (error) return setMsg(error.message);
+      if (error) {
+        setErr(error.message);
+        return;
+      }
 
-    setMsg("Saved ✅");
-    await load();
-  }
+      await load();
+    },
+    [id, status, fundable, note, load]
+  );
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [load]);
+
+  const canShow = useMemo(() => !!row, [row]);
 
   return (
-    <div>
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+    <div className="mx-auto max-w-3xl">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Project Review</h1>
-          <p className="mt-1 text-sm text-mutedInk">Approve/reject and optionally list on Fund a Project.</p>
+          <p className="mt-1 text-sm text-mutedInk">
+            Approve/reject and optionally list on Fund a Project.
+          </p>
+          <p className="mt-1 text-xs text-mutedInk">ID: {id || "—"}</p>
         </div>
 
         <div className="flex gap-3">
-          <Link href="/admin/applications" className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/[0.03]">
+          <Link
+            href="/admin/applications"
+            className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/[0.03]"
+          >
             ← Back
           </Link>
-          <button onClick={load} className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/[0.03]">
+
+          <button
+            onClick={load}
+            className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/[0.03]"
+          >
             Refresh
           </button>
         </div>
       </div>
 
-      {msg ? <div className="mt-4 rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm">{msg}</div> : null}
-
       <div className="mt-6 rounded-3xl border border-black/10 bg-white p-5">
         {loading ? (
           <div className="text-sm text-mutedInk">Loading…</div>
-        ) : !row ? (
-          <div className="text-sm text-mutedInk">No project found.</div>
+        ) : err ? (
+          <div className="text-sm text-red-700 whitespace-pre-wrap">{err}</div>
+        ) : !canShow ? (
+          <div className="text-sm text-mutedInk">Not found.</div>
         ) : (
           <div className="space-y-5">
-            <div>
-              <div className="text-lg font-semibold">{row.title}</div>
-              <div className="mt-1 text-sm text-mutedInk">
-                {row.org_name ?? "—"} • {row.location ?? "—"} {row.district ? `• ${row.district}` : ""}
+            <div className="rounded-2xl border border-black/10 p-4">
+              <div className="text-sm font-semibold">{row?.title ?? "Untitled project"}</div>
+              <div className="mt-1 text-xs text-mutedInk">
+                {row?.org_name ?? "—"} • {row?.location ?? "—"}{" "}
+                {row?.district ? `• ${row?.district}` : ""}
+              </div>
+              <div className="mt-2 text-xs text-mutedInk">
+                Submitted:{" "}
+                {row?.submitted_at ? new Date(row.submitted_at).toLocaleString() : "Not submitted"}
               </div>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <div className="text-xs font-medium text-mutedInk">Status</div>
                 <select
                   className="mt-2 w-full rounded-2xl border border-black/10 bg-white px-3 py-2 text-sm"
                   value={status}
-                  onChange={(e) => setStatus(e.target.value as any)}
+                  onChange={(e) => setStatus(e.target.value as Status)}
                 >
+                  <option value="submitted">Submitted</option>
                   <option value="pending">Pending</option>
                   <option value="approved">Approved</option>
                   <option value="rejected">Rejected</option>
-                  <option value="submitted">Submitted</option>
                   <option value="draft">Draft</option>
                 </select>
               </div>
@@ -147,38 +192,54 @@ export default function AdminApplicationDetailPage() {
                     checked={fundable}
                     onChange={(e) => setFundable(e.target.checked)}
                   />
-                  Mark as fundable
+                  List on “Fund a Project”
                 </label>
               </div>
-
-              <div className="md:col-span-1" />
             </div>
 
             <div>
               <div className="text-xs font-medium text-mutedInk">Admin note</div>
               <textarea
-                className="mt-2 w-full rounded-2xl border border-black/10 bg-white px-3 py-2 text-sm"
+                className="mt-2 w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm"
                 rows={4}
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="Add review comments, reasons, next steps…"
+                placeholder="Write feedback for the applicant…"
               />
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
               <button
-                onClick={save}
                 disabled={saving}
-                className="rounded-2xl bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800 disabled:opacity-60"
+                onClick={() => save()}
+                className="rounded-2xl bg-black px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
               >
-                {saving ? "Saving…" : "Save changes"}
+                {saving ? "Saving…" : "Save"}
               </button>
-              <Link
-                href="/admin/applications"
-                className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/[0.03]"
+
+              <button
+                disabled={saving}
+                onClick={() => save({ status: "approved" })}
+                className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800 disabled:opacity-60"
               >
-                Done
-              </Link>
+                Approve
+              </button>
+
+              <button
+                disabled={saving}
+                onClick={() => save({ status: "rejected" })}
+                className="rounded-2xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-800 disabled:opacity-60"
+              >
+                Reject
+              </button>
+
+              <button
+                disabled={saving}
+                onClick={() => save({ status: "pending" })}
+                className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-800 disabled:opacity-60"
+              >
+                Mark pending
+              </button>
             </div>
           </div>
         )}

@@ -28,12 +28,17 @@ export default function AdminDashboard() {
       if (error) throw error;
       return count ?? 0;
     };
+
     const [pending, approved, rejected, total] = await Promise.all([q("pending"), q("approved"), q("rejected"), q()]);
     setCounts({ pending, approved, rejected, total });
   }
 
   async function loadPages() {
-    const { data, error } = await supabase.from("pages").select("slug,title,updated_at").order("slug", { ascending: true });
+    const { data, error } = await supabase
+      .from("pages")
+      .select("slug,title,updated_at")
+      .order("slug", { ascending: true });
+
     if (error) throw error;
     setRows((data ?? []) as PageRow[]);
   }
@@ -47,21 +52,35 @@ export default function AdminDashboard() {
       await Promise.all([loadPages(), loadCounts()]);
     } catch (e: any) {
       const msg = e?.message ?? "Failed to load.";
-      if (msg.toLowerCase().includes("support_applications")) setCountsErr(msg);
+      if ((msg || "").toLowerCase().includes("support_applications")) setCountsErr(msg);
       else setErr(msg);
     } finally {
       setLoading(false);
     }
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
-  function Stat({ label, value, tone }: { label: string; value: number; tone?: "amber" | "emerald" | "red" }) {
+  function Stat({
+    label,
+    value,
+    tone,
+  }: {
+    label: string;
+    value: number;
+    tone?: "amber" | "emerald" | "red";
+  }) {
     const cls =
-      tone === "emerald" ? "bg-emerald-50 border-emerald-200 text-emerald-900"
-      : tone === "red" ? "bg-red-50 border-red-200 text-red-900"
-      : tone === "amber" ? "bg-amber-50 border-amber-200 text-amber-900"
-      : "bg-white border-black/10 text-ink";
+      tone === "emerald"
+        ? "bg-emerald-50 border-emerald-200 text-emerald-900"
+        : tone === "red"
+        ? "bg-red-50 border-red-200 text-red-900"
+        : tone === "amber"
+        ? "bg-amber-50 border-amber-200 text-amber-900"
+        : "bg-white border-black/10 text-ink";
+
     return (
       <div className={`rounded-3xl border p-5 ${cls}`}>
         <div className="text-xs font-medium opacity-70">{label}</div>
@@ -96,13 +115,18 @@ export default function AdminDashboard() {
             <div className="mt-1 text-sm text-mutedInk">Review uploaded documents and approve/reject.</div>
           </div>
 
-          <Link href="/admin/applications" className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/[0.03]">
+          <Link
+            href="/admin/applications"
+            className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/[0.03]"
+          >
             Open applications →
           </Link>
         </div>
 
         {countsErr ? (
-          <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{countsErr}</div>
+          <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            {countsErr}
+          </div>
         ) : (
           <div className="mt-4 grid gap-3 md:grid-cols-4">
             <Stat label="Total" value={counts.total} />
@@ -141,10 +165,7 @@ export default function AdminDashboard() {
         )}
       </div>
 
-      <div className="mt-4 text-xs text-mutedInk">
-        Tip: If you don’t see pages here, run the optional seed insert statements in the SQL file.
-      </div>
+      <div className="mt-4 text-xs text-mutedInk">Tip: If you don’t see pages here, run the optional seed insert statements in the SQL file.</div>
     </div>
   );
 }
-
