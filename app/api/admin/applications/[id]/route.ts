@@ -1,21 +1,22 @@
-﻿import { NextResponse } from "next/server";
+﻿import { NextResponse, NextRequest } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params;
   const sb = supabaseAdmin();
 
   const { data: appRow, error: appErr } = await sb
     .from("support_applications")
     .select("*")
-    .eq("id", params.id)
+    .eq("id", id)
     .maybeSingle();
 
   if (appErr) return NextResponse.json({ ok: false, error: appErr }, { status: 500 });
   if (!appRow) return NextResponse.json({ ok: false, error: "Application not found" }, { status: 404 });
 
-  let project = null;
+  let project: any = null;
   let documents: any[] = [];
 
   const projectId = (appRow as any).project_id as string | null;
