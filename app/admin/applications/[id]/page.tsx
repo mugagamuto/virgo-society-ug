@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import React, { useEffect, useMemo, useState, useCallback } from "react";
@@ -56,8 +56,7 @@ export default function AdminApplicationDetailPage() {
     setLoading(true);
     setErr(null);
 
-    const { data, error } = await supabase
-      .from("projects")
+    const { data, error } = await (supabase as any).from("projects")
       .select(
         "id,title,org_name,location,district,status,is_fundable,admin_note,submitted_at,created_at,updated_at"
       )
@@ -100,7 +99,7 @@ export default function AdminApplicationDetailPage() {
         updated_at: new Date().toISOString(),
       };
 
-      const { error } = await supabase.from("projects").update(payload as any).eq("id", id);
+      const { error } = await (supabase as any).from("projects").update(payload).eq("id", id);
 
       setSaving(false);
 
