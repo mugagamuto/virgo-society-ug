@@ -51,9 +51,7 @@ export default function MemberSignupPage() {
 
     const userId = data.user?.id;
     if (userId) {
-      await supabase
-        .from("members")
-        .upsert(
+      await (supabase as any).from("members").upsert(
           {
             id: userId,
             email: cleanEmail,
