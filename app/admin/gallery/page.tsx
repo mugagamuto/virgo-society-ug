@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -63,8 +63,7 @@ export default function AdminGalleryPage() {
     const { data, error } = await supabase
       .from("home_gallery_items")
       .select("id, sort_order, title, subtitle, image_url, href, is_active")
-      .order("sort_order", { ascending: true });
-
+      .order("sort_order", { ascending: true } as any));
     if (error) {
       setMsg("Failed to load: " + error.message);
       setRows([]);
@@ -95,7 +94,7 @@ export default function AdminGalleryPage() {
       is_active: !!r.is_active,
     };
 
-    const { error } = await supabase.from("home_gallery_items").update(payload).eq("id", r.id);
+    const { error } = await (supabase as any).from("home_gallery_items").update(payload as any).eq("id", r.id);
     if (error) setMsg("Save failed: " + error.message);
     else setMsg("Saved ✅");
 
@@ -107,15 +106,14 @@ export default function AdminGalleryPage() {
     setMsg(null);
     const nextOrder = (sorted[sorted.length - 1]?.sort_order ?? 0) + 1;
 
-    const { error } = await supabase.from("home_gallery_items").insert({
+    const { error } = await (supabase as any).from("home_gallery_items").insert(({
       sort_order: nextOrder,
       title: "New item",
       subtitle: "Short description",
       image_url: "/photos/children.jpg",
       href: "/impact",
       is_active: true,
-    });
-
+    } as any));
     if (error) setMsg("Add failed: " + error.message);
     else setMsg("Added ✅");
     await load();
@@ -124,7 +122,7 @@ export default function AdminGalleryPage() {
   async function deleteRow(id: string) {
     if (!confirm("Delete this item?")) return;
     setMsg(null);
-    const { error } = await supabase.from("home_gallery_items").delete().eq("id", id);
+    const { error } = await (supabase as any).from("home_gallery_items").delete().eq("id", id);
     if (error) setMsg("Delete failed: " + error.message);
     else setMsg("Deleted ✅");
     await load();
