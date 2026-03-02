@@ -124,6 +124,11 @@ export default function MemberDashboardPage() {
       return setMsg(upErr?.message ?? "Upload failed.");
     }
 
+    if (!active) {
+      setUploading(false);
+      return setMsg("No active project found. Please create/select a project first.");
+    }
+
     const { error: insErr } = await supabase.from("project_documents").insert(({
       project_id: active.id,
       owner_id: auth.user.id,
