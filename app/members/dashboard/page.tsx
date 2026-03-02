@@ -155,7 +155,7 @@ const { error: insErr } = await supabase.from("project_documents").insert(({
   async function viewDoc(path: string) {
     setMsg(null);
     const { data, error } = await supabase.storage.from("member-docs").createSignedUrl(path, 120);
-    if (error) return setMsg(upErr?.message ?? "Upload failed.");
+    if (error) return setMsg(error.message ?? "Failed to create download link.");
     window.open(data.signedUrl, "_blank");
   }
 
@@ -174,7 +174,7 @@ const { error: insErr } = await supabase.from("project_documents").insert(({
       .eq("id", active.id);
 
     setSubmitting(false);
-    if (error) return setMsg(upErr?.message ?? "Upload failed.");
+    if (error) return setMsg(error.message ?? "Failed to create download link.");
 
     setMsg("✅ Project submitted. Admin will review it.");
     loadProjects();
