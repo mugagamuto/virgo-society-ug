@@ -63,7 +63,7 @@ export default function AdminGalleryPage() {
     const { data, error } = await supabase
       .from("home_gallery_items")
       .select("id, sort_order, title, subtitle, image_url, href, is_active")
-      .order("sort_order", { ascending: true } as any));
+      .order("sort_order", { ascending: true });
     if (error) {
       setMsg("Failed to load: " + error.message);
       setRows([]);
