@@ -2,29 +2,36 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 
 type ApiResp =
   | { ok: true; application: any; project: any; documents: any[] }
   | { ok: false; error: any };
 
-export default function AdminApplicationDetail({ params }: { params: { id: string } }) {
-  const id = params?.id;
+export default function AdminApplicationDetail() {
+  const params = useParams();
+  const id = typeof params?.id === "string" ? params.id : Array.isArray(params?.id) ? params.id[0] : "";
 
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [data, setData] = useState<{ application: any; project: any; documents: any[] } | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
 
-  async function load() {
+  async function load(appId: string) {
     setLoading(true);
     setErr(null);
     setMsg(null);
 
     try {
-      const res = await fetch(`/api/admin/applications/${encodeURIComponent(id)}`, { cache: "no-store" });
+      const res = await fetch(`/api/admin/applications/${encodeURIComponent(appId)}`, { cache: "no-store" });
       const json = (await res.json()) as ApiResp;
-      if (!json.ok) throw new Error(typeof json.error === "string" ? json.error : (json.error?.message ?? "Failed"));
-      setData({ application: json.application, project: json.project, documents: json.documents ?? [] });
+
+      if (!res.ok || !json.ok) {
+        const m = (json as any)?.error?.message ?? (json as any)?.error ?? `HTTP ${res.status}`;
+        throw new Error(m);
+      }
+
+      setData({ application: (json as any).application, project: (json as any).project, documents: (json as any).documents ?? [] });
     } catch (e: any) {
       setErr(e?.message ?? "Failed to load.");
       setData(null);
@@ -34,26 +41,32 @@ export default function AdminApplicationDetail({ params }: { params: { id: strin
   }
 
   async function approve() {
+    if (!id) return;
     setMsg(null);
     const res = await fetch(`/api/admin/applications/${encodeURIComponent(id)}/approve`, { method: "POST" });
     const json = await res.json();
-    if (!json.ok) return setMsg(json?.error?.message ?? "Approve failed");
+    if (!res.ok || !json.ok) return setMsg(json?.error?.message ?? json?.error ?? "Approve failed");
     setMsg("Approved & published.");
-    await load();
+    await load(id);
   }
 
   async function reject() {
+    if (!id) return;
     setMsg(null);
     const res = await fetch(`/api/admin/applications/${encodeURIComponent(id)}/reject`, { method: "POST" });
     const json = await res.json();
-    if (!json.ok) return setMsg(json?.error?.message ?? "Reject failed");
+    if (!res.ok || !json.ok) return setMsg(json?.error?.message ?? json?.error ?? "Reject failed");
     setMsg("Rejected.");
-    await load();
+    await load(id);
   }
 
   useEffect(() => {
-    if (!id) return;
-    load();
+    if (!id) {
+      setLoading(false);
+      setErr("Missing application id in URL.");
+      return;
+    }
+    load(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -63,7 +76,7 @@ export default function AdminApplicationDetail({ params }: { params: { id: strin
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Application Review</h1>
           <p className="text-sm text-mutedInk">Verify documents then approve to publish on Fund a Project.</p>
-          <div className="mt-1 text-xs text-mutedInk">ID: {id ?? "—"}</div>
+          <div className="mt-1 text-xs text-mutedInk">ID: {id || "—"}</div>
         </div>
         <Link href="/admin/applications" className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/[0.03]">
           ← Back
@@ -92,40 +105,10 @@ export default function AdminApplicationDetail({ params }: { params: { id: strin
                 <button onClick={reject} className="rounded-2xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">
                   Reject
                 </button>
-                <button onClick={load} className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-semibold hover:bg-black/[0.03]">
+                <button onClick={() => load(id)} className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-semibold hover:bg-black/[0.03]">
                   Refresh
                 </button>
               </div>
-            </div>
-
-            <div className="mt-4 grid gap-3 md:grid-cols-3">
-              <div className="rounded-2xl border border-black/10 p-4">
-                <div className="text-xs text-mutedInk">Applicant</div>
-                <div className="mt-1 text-sm font-medium">{data.application?.full_name ?? "—"}</div>
-              </div>
-              <div className="rounded-2xl border border-black/10 p-4">
-                <div className="text-xs text-mutedInk">Email</div>
-                <div className="mt-1 text-sm font-medium">{data.application?.email ?? "—"}</div>
-              </div>
-              <div className="rounded-2xl border border-black/10 p-4">
-                <div className="text-xs text-mutedInk">Phone</div>
-                <div className="mt-1 text-sm font-medium">{data.application?.phone ?? "—"}</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-3xl border border-black/10 bg-white p-5">
-            <div className="text-sm font-semibold">Project</div>
-            <div className="mt-2 text-sm text-mutedInk">
-              {data.project ? (
-                <>
-                  <div><span className="font-medium">Title:</span> {data.project?.title ?? data.application?.project_title ?? "—"}</div>
-                  <div><span className="font-medium">Budget:</span> {data.project?.budget_ugx ?? data.application?.project_budget_ugx ?? "—"}</div>
-                  <div><span className="font-medium">Stage:</span> {data.project?.stage ?? data.application?.project_stage ?? "—"}</div>
-                </>
-              ) : (
-                <>No linked project found (check support_applications.project_id).</>
-              )}
             </div>
           </div>
 
