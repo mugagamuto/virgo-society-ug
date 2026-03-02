@@ -10,17 +10,26 @@ type ApiResp = ApiOk | ApiErr;
 
 async function safeJson(res: Response) {
   const text = await res.text();
-  try { return { json: JSON.parse(text), text }; } catch { return { json: null, text }; }
+  try {
+    return { json: JSON.parse(text), text };
+  } catch {
+    return { json: null as any, text };
+  }
 }
 
 export default function AdminApplicationDetail() {
   const params = useParams();
-  const id = typeof params?.id === "string" ? params.id : Array.isArray(params?.id) ? params.id[0] : "";
+  const id =
+    typeof (params as any)?.id === "string"
+      ? ((params as any).id as string)
+      : Array.isArray((params as any)?.id)
+      ? (((params as any).id as string[])[0] ?? "")
+      : "";
 
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
-  const [data, setData] = useState<{ application: any; project: any; documents: any[] } | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
+  const [data, setData] = useState<{ application: any; project: any; documents: any[] } | null>(null);
 
   async function load(appId: string) {
     setLoading(true);
@@ -30,10 +39,9 @@ export default function AdminApplicationDetail() {
     try {
       const res = await fetch(`/api/admin/applications/${encodeURIComponent(appId)}`, { cache: "no-store" });
       const { json, text } = await safeJson(res);
-
       if (!json) throw new Error(`API returned non-JSON (${res.status}). ${text.slice(0, 200)}`);
-      const payload = json as ApiResp;
 
+      const payload = json as ApiResp;
       if (!res.ok || !payload.ok) {
         const m = (payload as any)?.error?.message ?? (payload as any)?.error ?? `HTTP ${res.status}`;
         throw new Error(m);
@@ -54,7 +62,6 @@ export default function AdminApplicationDetail() {
 
     const res = await fetch(`/api/admin/applications/${encodeURIComponent(id)}/approve`, { method: "POST" });
     const { json, text } = await safeJson(res);
-
     if (!json) return setMsg(`Approve API returned non-JSON (${res.status}). ${text.slice(0, 200)}`);
     if (!res.ok || !json.ok) return setMsg(json?.error?.message ?? json?.error ?? "Approve failed");
 
@@ -68,12 +75,23 @@ export default function AdminApplicationDetail() {
 
     const res = await fetch(`/api/admin/applications/${encodeURIComponent(id)}/reject`, { method: "POST" });
     const { json, text } = await safeJson(res);
-
     if (!json) return setMsg(`Reject API returned non-JSON (${res.status}). ${text.slice(0, 200)}`);
     if (!res.ok || !json.ok) return setMsg(json?.error?.message ?? json?.error ?? "Reject failed");
 
     setMsg("Rejected.");
     await load(id);
+  }
+
+  async function openDoc(filePath: string) {
+    try {
+      const res = await fetch(`/api/admin/doc-url?path=${encodeURIComponent(filePath)}`, { cache: "no-store" });
+      const { json, text } = await safeJson(res);
+      if (!json) throw new Error(`doc-url returned non-JSON (${res.status}). ${text.slice(0, 200)}`);
+      if (!res.ok || !json.ok) throw new Error(json?.error?.message ?? json?.error ?? "Failed to create link");
+      window.open(json.signedUrl, "_blank");
+    } catch (e: any) {
+      setMsg(e?.message ?? "Failed to open document.");
+    }
   }
 
   useEffect(() => {
@@ -130,32 +148,31 @@ export default function AdminApplicationDetail() {
 
           <div className="rounded-3xl border border-black/10 bg-white p-5">
             <div className="text-sm font-semibold">Documents</div>
+
             {data.documents?.length ? (
               <div className="mt-3 space-y-2">
                 {data.documents.map((d: any) => (
                   <div key={d.id ?? d.file_path} className="flex items-center justify-between rounded-2xl border border-black/10 p-3">
-  <div>
-    <div className="text-sm font-medium">{d.doc_type ?? "document"}</div>
-    <div className="text-xs text-mutedInk">{d.original_name ?? d.file_path ?? "—"}</div>
-  </div>
-  <div className="flex items-center gap-3">
-    <div className="text-xs text-mutedInk">{d.created_at ? new Date(d.created_at).toLocaleString() : ""}</div>
-    <button
-      className="rounded-xl border border-black/10 px-3 py-1.5 text-sm font-medium hover:bg-black/[0.03]"
-      onClick={async () => {
-        const p = d.file_path as string;
-        if (!p) return alert("Missing file_path for this document");
-        const res = await fetch(`/api/admin/doc-url?path=${encodeURIComponent(p)}`, { cache: "no-store" });
-        const j = await res.json();
-        if (!res.ok || !j.ok) return alert(j?.error?.message ?? j?.error ?? "Failed to create link");
-        window.open(j.signedUrl, "_blank");
-      }}
-    >
-      View / Download
-    </button>
-  </div>
-</div>
-                    <div className="text-xs text-mutedInk">{d.created_at ? new Date(d.created_at).toLocaleString() : ""}</div>
+                    <div>
+                      <div className="text-sm font-medium">{d.doc_type ?? "document"}</div>
+                      <div className="text-xs text-mutedInk">{d.original_name ?? d.file_path ?? "—"}</div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <div className="text-xs text-mutedInk">
+                        {d.created_at ? new Date(d.created_at).toLocaleString() : ""}
+                      </div>
+                      <button
+                        className="rounded-xl border border-black/10 px-3 py-1.5 text-sm font-medium hover:bg-black/[0.03]"
+                        onClick={() => {
+                          const p = d.file_path as string;
+                          if (!p) return setMsg("Missing file_path for this document.");
+                          openDoc(p);
+                        }}
+                      >
+                        View / Download
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
