@@ -45,7 +45,7 @@ export default function AdminSettings() {
     for (const r of rows) {
       await (supabase as any).from("site_settings").upsert({ key: r.key, value: r.value, updated_at: new Date().toISOString() });
     }
-    setStatus("Saved Ã¢Å“â€¦");
+    setStatus("Saved ✅");
   }
 
   return (
