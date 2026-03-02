@@ -17,44 +17,12 @@ function Pill({ children }: { children: React.ReactNode }) {
   );
 }
 
-function ImagePlaceholder({
-  label,
-  className,
-}: {
-  label: string;
-  className?: string;
-}) {
-  return (
-    <div
-      className={
-        "relative overflow-hidden rounded-[32px] border border-black/10 bg-black/[0.02] shadow-sm " +
-        (className ?? "")
-      }
-    >
-      <div className="absolute inset-0 bg-gradient-to-br from-emerald-100 via-white to-emerald-50" />
-      <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-emerald-200/40 blur-2xl" />
-      <div className="absolute -left-20 -bottom-20 h-72 w-72 rounded-full bg-black/5 blur-2xl" />
-      <div className="relative flex h-full w-full items-end justify-between p-6">
-        <div>
-          <div className="text-xs font-semibold tracking-widest text-black/50 uppercase">Virgo Building Society</div>
-          <div className="mt-1 text-lg font-semibold tracking-tight">{label}</div>
-          <div className="mt-1 text-sm text-black/60">Replace this with a real branded photo later.</div>
-        </div>
-        <div className="hidden rounded-2xl border border-black/10 bg-white/70 px-3 py-2 text-xs font-semibold text-black/70 backdrop-blur md:block">
-          Premium placeholder
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
-      {/* Top gradient wash */}
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[520px] bg-gradient-to-b from-emerald-50 via-white to-white" />
 
-      {/* NAV (keep logins here) */}
+      {/* NAV (NO admin login here) */}
       <header className="border-b border-black/10 bg-white/80 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-4">
           <Link href="/" className="flex items-center gap-3">
@@ -81,13 +49,6 @@ export default function HomePage() {
             >
               Member Login
             </Link>
-
-            <Link
-              href="/admin/login"
-              className="rounded-2xl bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-black/90"
-            >
-              Admin
-            </Link>
           </nav>
         </div>
       </header>
@@ -108,7 +69,7 @@ export default function HomePage() {
 
             <p className="mt-4 max-w-xl text-base text-black/70">
               Virgo Building Society helps members submit projects with clear goals and budget breakdowns. Admin verifies
-              documents, approves and publishes projects to donors — so every shilling supports real impact.
+              supporting documents, approves and publishes projects to donors — so every shilling supports real impact.
             </p>
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -119,6 +80,7 @@ export default function HomePage() {
                 Fund a Project
               </Link>
 
+              {/* WhatsApp button — NO bounce/animation */}
               <a
                 href="https://wa.me/256780787228"
                 target="_blank"
@@ -129,10 +91,6 @@ export default function HomePage() {
               </a>
             </div>
 
-            <div className="mt-2 text-xs text-black/60">
-              Logins remain in the top menu. This page stays public and premium.
-            </div>
-
             <div className="mt-8 grid grid-cols-2 gap-3">
               <Stat label="Approval workflow" value="Member → Admin → Donor" />
               <Stat label="Funding visibility" value="Live totals & progress" />
@@ -140,17 +98,30 @@ export default function HomePage() {
           </div>
 
           <div className="space-y-4">
-            <ImagePlaceholder label="Community impact, verified." className="h-[360px] md:h-[460px]" />
+            {/* REAL images (put these files in /public/brand/) */}
+            <div className="relative overflow-hidden rounded-[32px] border border-black/10 bg-black/[0.02] shadow-sm">
+              <img
+                src="/brand/hero.jpg"
+                alt="Virgo Building Society"
+                className="h-[360px] w-full object-cover md:h-[460px]"
+                loading="eager"
+              />
+            </div>
+
             <div className="grid grid-cols-3 gap-3">
               <div className="overflow-hidden rounded-3xl border border-black/10 bg-white shadow-sm">
-                <div className="h-24 w-full bg-gradient-to-br from-emerald-100 via-white to-emerald-50 md:h-28" />
+                <img src="/brand/card-1.jpg" alt="Impact" className="h-24 w-full object-cover md:h-28" />
               </div>
               <div className="overflow-hidden rounded-3xl border border-black/10 bg-white shadow-sm">
-                <div className="h-24 w-full bg-gradient-to-br from-white via-emerald-50 to-black/[0.02] md:h-28" />
+                <img src="/brand/card-2.jpg" alt="Community" className="h-24 w-full object-cover md:h-28" />
               </div>
               <div className="overflow-hidden rounded-3xl border border-black/10 bg-white shadow-sm">
-                <div className="h-24 w-full bg-gradient-to-br from-emerald-50 via-white to-emerald-100 md:h-28" />
+                <img src="/brand/card-3.jpg" alt="Transparency" className="h-24 w-full object-cover md:h-28" />
               </div>
+            </div>
+
+            <div className="text-xs text-black/60">
+              If images look empty, confirm these exist: <b>/public/brand/hero.jpg</b> and <b>card-1.jpg</b>…<b>card-3.jpg</b>.
             </div>
           </div>
         </div>
@@ -179,80 +150,21 @@ export default function HomePage() {
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm">
               <div className="text-sm font-semibold">1) Member submits</div>
-              <p className="mt-2 text-sm text-black/70">
-                Title, description, goals, stage, location, proposal + budget breakdown.
-              </p>
+              <p className="mt-2 text-sm text-black/70">Title, description, goals, stage, proposal + budget breakdown.</p>
             </div>
             <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm">
               <div className="text-sm font-semibold">2) Admin verifies</div>
-              <p className="mt-2 text-sm text-black/70">
-                Review supporting documents (admin-only). Approve or reject with an admin note.
-              </p>
+              <p className="mt-2 text-sm text-black/70">Supporting documents are admin-only. Approve/reject with notes.</p>
             </div>
             <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm">
               <div className="text-sm font-semibold">3) Donors fund</div>
-              <p className="mt-2 text-sm text-black/70">
-                Approved projects appear publicly with proposal + budget breakdown + live progress.
-              </p>
+              <p className="mt-2 text-sm text-black/70">Approved projects appear publicly with proposal + budget + progress.</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* FEATURED */}
-      <section className="border-t border-black/10 bg-black/[0.02]">
-        <div className="mx-auto max-w-6xl px-4 py-12">
-          <div className="flex items-end justify-between gap-3">
-            <div>
-              <div className="text-xs font-semibold tracking-widest text-black/50 uppercase">Featured</div>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight">Verified projects ready for support</h2>
-              <p className="mt-2 max-w-2xl text-sm text-black/70">
-                These are visual examples. Live data shows here once projects are approved and published.
-              </p>
-            </div>
-            <Link href="/donors" className="rounded-2xl bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-black/90">
-              Fund a Project
-            </Link>
-          </div>
-
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            {[
-              { title: "Clean Water Access", meta: "Wakiso • Approved" },
-              { title: "School Supplies Drive", meta: "Kampala • Approved" },
-              { title: "Community Health Outreach", meta: "Mukono • Approved" },
-            ].map((p) => (
-              <div key={p.title} className="overflow-hidden rounded-3xl border border-black/10 bg-white shadow-sm">
-                <div className="h-44 bg-gradient-to-br from-emerald-100 via-white to-emerald-50" />
-                <div className="p-5">
-                  <div className="text-sm font-semibold">{p.title}</div>
-                  <div className="mt-1 text-xs text-black/60">{p.meta}</div>
-
-                  <div className="mt-4 flex gap-2">
-                    <Link
-                      href="/donors"
-                      className="inline-flex w-full items-center justify-center rounded-2xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
-                    >
-                      Fund
-                    </Link>
-                    <Link
-                      href="/donors"
-                      className="inline-flex w-full items-center justify-center rounded-2xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold hover:bg-black/[0.02]"
-                    >
-                      Details
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-6 rounded-3xl border border-black/10 bg-white p-6 text-sm text-black/70">
-            <b>Note:</b> Supporting documents remain visible to Admin only. Donors see proposal + budget breakdown + progress.
-          </div>
-        </div>
-      </section>
-
-      {/* FOOTER (no login buttons here) */}
+      {/* FOOTER */}
       <footer className="border-t border-black/10 bg-white">
         <div className="mx-auto max-w-6xl px-4 py-10">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
