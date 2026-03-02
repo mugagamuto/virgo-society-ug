@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
@@ -25,15 +25,15 @@ export default function AdminSettings() {
 
   async function ensureDefaults() {
     for (const d of defaults) {
-      const { data } = await supabase.from("site_settings").select("key").eq("key", d.key).maybeSingle();
-      if (!data) await supabase.from("site_settings").insert({ key: d.key, value: d.value });
+      const { data } = await (supabase as any).from("site_settings").select("key").eq("key", d.key).maybeSingle();
+      if (!data) await (supabase as any).from("site_settings").insert(({ key: d.key, value: d.value } as any));
     }
   }
 
   async function load() {
     setStatus(null);
     await ensureDefaults();
-    const { data, error } = await supabase.from("site_settings").select("*").order("key");
+    const { data, error } = await (supabase as any).from("site_settings").select("*").order("key");
     if (error) setStatus(error.message);
     setRows((data as any) ?? []);
   }
@@ -43,7 +43,7 @@ export default function AdminSettings() {
   async function save() {
     setStatus(null);
     for (const r of rows) {
-      await supabase.from("site_settings").upsert({ key: r.key, value: r.value, updated_at: new Date().toISOString() });
+      await (supabase as any).from("site_settings").upsert({ key: r.key, value: r.value, updated_at: new Date().toISOString() });
     }
     setStatus("Saved Ã¢Å“â€¦");
   }
