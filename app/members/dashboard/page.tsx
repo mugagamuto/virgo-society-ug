@@ -1,5 +1,7 @@
 ﻿"use client";
 
+
+const LOAD_TIMEOUT_MS = 12000;
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase-browser";
