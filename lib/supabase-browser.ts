@@ -21,8 +21,7 @@ export const supabase =
       autoRefreshToken: true,
       detectSessionInUrl: true,
       flowType: "pkce",
-      ...(isBrowser ? { lock: async (_name, fn) => await fn() } : {}),
-    },
+},
   });
 
 if (isBrowser) globalThis.__supabase__ = supabase;
