@@ -134,10 +134,27 @@ export default function AdminApplicationDetail() {
               <div className="mt-3 space-y-2">
                 {data.documents.map((d: any) => (
                   <div key={d.id ?? d.file_path} className="flex items-center justify-between rounded-2xl border border-black/10 p-3">
-                    <div>
-                      <div className="text-sm font-medium">{d.doc_type ?? "document"}</div>
-                      <div className="text-xs text-mutedInk">{d.original_name ?? d.file_path ?? "—"}</div>
-                    </div>
+  <div>
+    <div className="text-sm font-medium">{d.doc_type ?? "document"}</div>
+    <div className="text-xs text-mutedInk">{d.original_name ?? d.file_path ?? "—"}</div>
+  </div>
+  <div className="flex items-center gap-3">
+    <div className="text-xs text-mutedInk">{d.created_at ? new Date(d.created_at).toLocaleString() : ""}</div>
+    <button
+      className="rounded-xl border border-black/10 px-3 py-1.5 text-sm font-medium hover:bg-black/[0.03]"
+      onClick={async () => {
+        const p = d.file_path as string;
+        if (!p) return alert("Missing file_path for this document");
+        const res = await fetch(`/api/admin/doc-url?path=${encodeURIComponent(p)}`, { cache: "no-store" });
+        const j = await res.json();
+        if (!res.ok || !j.ok) return alert(j?.error?.message ?? j?.error ?? "Failed to create link");
+        window.open(j.signedUrl, "_blank");
+      }}
+    >
+      View / Download
+    </button>
+  </div>
+</div>
                     <div className="text-xs text-mutedInk">{d.created_at ? new Date(d.created_at).toLocaleString() : ""}</div>
                   </div>
                 ))}
