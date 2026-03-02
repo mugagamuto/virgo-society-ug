@@ -1,155 +1,93 @@
 ﻿"use client";
 
 import Link from "next/link";
-import React, { useEffect, useMemo, useState } from "react";
-import { supabase } from "@/lib/supabase-browser";
+import { useEffect, useState } from "react";
 
-type MemberRow = {
-  user_id: string;
-  org_name: string | null;
-  contact_name: string | null;
-  phone: string | null;
-  email: string | null;
-  location: string | null;
-  district: string | null;
-  status: "active" | "suspended" | string;
-  created_at: string;
-};
+type Member = { id: string; email: string | null; full_name: string | null; status: string | null; created_at: string };
 
-function Pill({ status }: { status: string }) {
-  const cls =
-    status === "active"
-      ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-      : status === "suspended"
-      ? "bg-red-50 text-red-800 border-red-200"
-      : "bg-neutral-50 text-neutral-800 border-neutral-200";
-  return <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${cls}`}>{status.toUpperCase()}</span>;
+async function safeJson(res: Response) {
+  const t = await res.text();
+  try { return { json: JSON.parse(t), text: t }; } catch { return { json: null as any, text: t }; }
 }
 
 export default function AdminMembersPage() {
-  const [rows, setRows] = useState<MemberRow[]>([]);
+  const [rows, setRows] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState<string | null>(null);
-
-  const [q, setQ] = useState("");
-  const [filter, setFilter] = useState<"all" | "active" | "suspended">("all");
-
-  const filtered = useMemo(() => {
-    const qq = q.trim().toLowerCase();
-    return rows.filter((r) => {
-      if (filter !== "all" && r.status !== filter) return false;
-      if (!qq) return true;
-      const blob = `${r.org_name ?? ""} ${r.contact_name ?? ""} ${r.email ?? ""} ${r.phone ?? ""} ${r.location ?? ""} ${r.district ?? ""}`.toLowerCase();
-      return blob.includes(qq);
-    });
-  }, [rows, q, filter]);
+  const [msg, setMsg] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
-    setErr(null);
-
-    const { data, error } = await supabase
-      .from("members")
-      .select("user_id,org_name,contact_name,phone,email,location,district,status,created_at")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      setErr(error.message);
-      setLoading(false);
-      return;
-    }
-
-    setRows((data ?? []) as MemberRow[]);
+    setMsg(null);
+    const res = await fetch("/api/admin/members", { cache: "no-store" });
+    const { json, text } = await safeJson(res);
+    if (!json) { setMsg(`Non-JSON (${res.status}): ${text.slice(0,200)}`); setRows([]); setLoading(false); return; }
+    if (!res.ok || !json.ok) { setMsg(json?.error?.message ?? json?.error ?? "Failed"); setRows([]); setLoading(false); return; }
+    setRows(json.data ?? []);
     setLoading(false);
   }
 
-  useEffect(() => {
-    load();
-  }, []);
+  async function setStatus(id: string, status: string) {
+    setMsg(null);
+    const res = await fetch("/api/admin/members", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, status }) });
+    const { json, text } = await safeJson(res);
+    if (!json) return setMsg(`Non-JSON (${res.status}): ${text.slice(0,200)}`);
+    if (!res.ok || !json.ok) return setMsg(json?.error?.message ?? json?.error ?? "Update failed");
+    setMsg("Updated ✅");
+    await load();
+  }
+
+  useEffect(() => { load(); }, []);
 
   return (
-    <div>
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+    <div className="max-w-6xl space-y-4">
+      <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Member Management</h1>
-          <p className="mt-1 text-sm text-mutedInk">View members, suspend/activate, and generate password reset links.</p>
+          <h1 className="text-2xl font-semibold tracking-tight">Manage Members</h1>
+          <p className="mt-1 text-sm text-mutedInk">View members and activate/suspend accounts.</p>
         </div>
-
-        <div className="flex gap-3">
-          <Link href="/admin" className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/[0.03]">
-            ← Back
-          </Link>
-          <button
-            onClick={load}
-            className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/[0.03]"
-          >
-            Refresh
-          </button>
-        </div>
+        <Link href="/admin" className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-semibold hover:bg-black/[0.03]">← Back</Link>
       </div>
 
-      <div className="mt-6 rounded-3xl border border-black/10 bg-white p-5">
-        <div className="grid gap-3 md:grid-cols-3">
-          <div>
-            <div className="text-xs font-medium text-mutedInk">Status</div>
-            <select
-              className="mt-2 w-full rounded-2xl border border-black/10 bg-white px-3 py-2 text-sm"
-              value={filter}
-              onChange={(e) => setFilter(e.target.value as any)}
-            >
-              <option value="all">All</option>
-              <option value="active">Active</option>
-              <option value="suspended">Suspended</option>
-            </select>
-          </div>
+      {msg ? <div className="rounded-2xl border border-black/10 bg-white p-3 text-sm">{msg}</div> : null}
 
-          <div className="md:col-span-2">
-            <div className="text-xs font-medium text-mutedInk">Search</div>
-            <input
-              className="mt-2 w-full rounded-2xl border border-black/10 bg-white px-4 py-2 text-sm"
-              placeholder="Search org, contact, email, phone, location…"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-4 rounded-3xl border border-black/10 bg-white">
-        <div className="border-b border-black/5 px-5 py-4 text-sm font-medium">
-          Members • {filtered.length}
-        </div>
-
+      <div className="rounded-3xl border border-black/10 bg-white p-5">
         {loading ? (
-          <div className="px-5 py-6 text-sm text-mutedInk">Loading…</div>
-        ) : err ? (
-          <div className="px-5 py-6 text-sm text-red-700">{err}</div>
-        ) : filtered.length === 0 ? (
-          <div className="px-5 py-6 text-sm text-mutedInk">No members found.</div>
+          <div className="text-sm text-mutedInk">Loading…</div>
+        ) : rows.length === 0 ? (
+          <div className="text-sm text-mutedInk">No members found.</div>
         ) : (
-          <div className="divide-y divide-black/5">
-            {filtered.map((r) => (
-              <div key={r.user_id} className="flex flex-col gap-3 px-5 py-4 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <div className="flex flex-wrap items-center gap-3">
-                    <div className="text-sm font-semibold">{r.org_name ?? "—"}</div>
-                    <Pill status={r.status} />
-                  </div>
-                  <div className="mt-1 text-xs text-mutedInk">
-                    {r.contact_name ?? "—"} • {r.email ?? "—"} • {r.phone ?? "—"} • {r.location ?? "—"} {r.district ? `• ${r.district}` : ""}
-                  </div>
-                </div>
-
-                <Link
-                  href={`/admin/members/${r.user_id}`}
-                  className="rounded-2xl border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/[0.03]"
-                >
-                  Open →
-                </Link>
-              </div>
-            ))}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="text-left text-xs text-mutedInk">
+                <tr>
+                  <th className="py-2">Name</th>
+                  <th className="py-2">Email</th>
+                  <th className="py-2">Status</th>
+                  <th className="py-2">Joined</th>
+                  <th className="py-2">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((m) => (
+                  <tr key={m.id} className="border-t border-black/5">
+                    <td className="py-3">{m.full_name ?? "—"}</td>
+                    <td className="py-3">{m.email ?? "—"}</td>
+                    <td className="py-3">{m.status ?? "—"}</td>
+                    <td className="py-3">{m.created_at ? new Date(m.created_at).toLocaleString() : ""}</td>
+                    <td className="py-3 flex gap-2">
+                      <button onClick={() => setStatus(m.id, "active")} className="rounded-xl bg-emerald-700 px-3 py-2 text-white font-semibold hover:bg-emerald-800">Activate</button>
+                      <button onClick={() => setStatus(m.id, "suspended")} className="rounded-xl bg-red-600 px-3 py-2 text-white font-semibold hover:bg-red-700">Suspend</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
+
+        <div className="mt-4">
+          <button onClick={load} className="rounded-xl border border-black/10 px-4 py-2 text-sm font-semibold hover:bg-black/[0.03]">Refresh</button>
+        </div>
       </div>
     </div>
   );
