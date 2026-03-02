@@ -87,7 +87,7 @@ export default function MemberProfilePage() {
       district: (row.district ?? "").trim() || null,
     };
 
-    const { error } = await supabase.from("members").update(payload).eq("user_id", row.user_id);
+    const { error } = await (supabase as any).from("members").update(payload).eq("user_id", row.user_id);
     if (error) setMsg(error.message);
     else setMsg("Saved ✅");
 
