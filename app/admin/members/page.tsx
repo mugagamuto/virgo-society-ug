@@ -4,7 +4,15 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AdminGuard } from "@/components/admin/admin-guard";
 
-type Member = { user_id: string; email: string | null; full_name: string | null; status: string | null; created_at: string };
+type Member = {
+  user_id: string;
+  email: string | null;
+  contact_name: string | null;
+  phone: string | null;
+  org_name: string | null;
+  status: string | null;
+  created_at: string;
+};
 
 async function safeJson(res: Response) {
   const t = await res.text();
@@ -72,8 +80,10 @@ export default function AdminMembersPage() {
               <table className="w-full text-sm">
                 <thead className="text-left text-xs text-mutedInk">
                   <tr>
-                    <th className="py-2">Name</th>
+                    <th className="py-2">Contact</th>
+                    <th className="py-2">Org</th>
                     <th className="py-2">Email</th>
+                    <th className="py-2">Phone</th>
                     <th className="py-2">Status</th>
                     <th className="py-2">Joined</th>
                     <th className="py-2">Action</th>
@@ -82,8 +92,10 @@ export default function AdminMembersPage() {
                 <tbody>
                   {rows.map((m) => (
                     <tr key={m.user_id} className="border-t border-black/5">
-                      <td className="py-3">{m.full_name ?? "—"}</td>
+                      <td className="py-3">{m.contact_name ?? "—"}</td>
+                      <td className="py-3">{m.org_name ?? "—"}</td>
                       <td className="py-3">{m.email ?? "—"}</td>
+                      <td className="py-3">{m.phone ?? "—"}</td>
                       <td className="py-3">{m.status ?? "—"}</td>
                       <td className="py-3">{m.created_at ? new Date(m.created_at).toLocaleString() : ""}</td>
                       <td className="py-3 flex gap-2">

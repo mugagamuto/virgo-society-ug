@@ -8,7 +8,7 @@ export async function GET(_req: NextRequest) {
 
   const { data, error: qErr } = await sb
     .from("members")
-    .select("id,email,full_name,status,created_at")
+    .select("user_id,email,contact_name,phone,org_name,status,created_at")
     .order("created_at", { ascending: false });
 
   if (qErr) return NextResponse.json({ ok: false, error: qErr }, { status: 500 });
@@ -20,11 +20,11 @@ export async function POST(req: NextRequest) {
   if (error) return NextResponse.json({ ok: false, error }, { status: 500 });
 
   const body = await req.json().catch(() => ({}));
-  const id = String(body.id || "");
+  const user_id = String(body.user_id || "");
   const status = String(body.status || "");
-  if (!id || !status) return NextResponse.json({ ok: false, error: "Missing id/status" }, { status: 400 });
+  if (!user_id || !status) return NextResponse.json({ ok: false, error: "Missing user_id/status" }, { status: 400 });
 
-  const { error: upErr } = await sb.from("members").update({ status }).eq("id", id);
+  const { error: upErr } = await sb.from("members").update({ status }).eq("user_id", user_id);
   if (upErr) return NextResponse.json({ ok: false, error: upErr }, { status: 500 });
 
   return NextResponse.json({ ok: true });
