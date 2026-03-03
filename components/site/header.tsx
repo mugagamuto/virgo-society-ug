@@ -13,35 +13,32 @@ export function Header() {
   const [open, setOpen] = React.useState(false);
 
   return (
-    <header className="sticky top-0 z-50 bg-white/85 backdrop-blur border-b border-black/10 shadow-[0_1px_0_rgba(0,0,0,0.04)]">
+    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-black/10 shadow-[0_1px_0_rgba(0,0,0,0.04)]">
       <Container>
-        {/* Top row */}
         <div className="relative h-16 md:h-20 flex items-center">
-          {/* Left (desktop nav) */}
-          <div className="hidden md:flex items-center gap-4 text-sm flex-1 min-w-0">
+          {/* Desktop left nav */}
+          <div className="hidden md:flex items-center gap-5 text-sm flex-1 min-w-0">
             <NavLinks />
           </div>
 
-          {/* Mobile Left: Logo */}
+          {/* Mobile left: logo */}
           <div className="md:hidden flex items-center">
-            <Link href="/" aria-label="Home" className="inline-flex items-center">
-              <Logo />
-            </Link>
+            <Logo />
           </div>
 
-          {/* Center Brand */}
-          <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center">
-            <Link href="/" className="flex flex-col items-center leading-tight">
-              <div className="text-[17px] md:text-xl font-extrabold tracking-tight text-ink whitespace-nowrap">
+          {/* Brand centered (all sizes) */}
+          <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center justify-center text-center">
+            <Link href="/" className="flex flex-col items-center">
+              <div className="text-[15px] sm:text-[16px] md:text-[18px] font-semibold tracking-tight text-ink leading-[1.15]">
                 Virgo Building Society
               </div>
-              <div className="text-[11px] md:text-sm text-mutedInk whitespace-nowrap">
+              <div className="mt-0.5 hidden sm:block text-[11px] md:text-[13px] text-mutedInk leading-[1.2]">
                 Transparency-first community funding
               </div>
             </Link>
           </div>
 
-          {/* Right CTAs (desktop) */}
+          {/* Desktop right CTAs */}
           <div className="hidden md:flex items-center justify-end gap-3 flex-1">
             <Link href="/members/login?tab=signup">
               <Button size="sm" variant="secondary" className="whitespace-nowrap">
@@ -53,9 +50,9 @@ export function Header() {
             </Link>
           </div>
 
-          {/* Mobile Right: Menu */}
+          {/* Mobile menu button (right) */}
           <button
-            className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-black/10 ml-auto bg-white/70"
+            className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-black/10 ml-auto bg-white"
             onClick={() => setOpen((v) => !v)}
             aria-label="Toggle menu"
           >
