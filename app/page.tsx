@@ -20,6 +20,8 @@ function Pill({ children }: { children: React.ReactNode }) {
   );
 }
 
+import { ImpactGallery } from "@/components/site/impact-gallery";
+
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
@@ -197,3 +199,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+
