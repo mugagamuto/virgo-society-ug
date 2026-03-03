@@ -56,11 +56,6 @@ async function loadItems(): Promise<Item[]> {
   return data as Item[];
 }
 
-function safeText(v: unknown, fallbackValue: string) {
-  const s = typeof v === "string" ? v.trim() : "";
-  return s.length ? s : fallbackValue;
-}
-
 export async function ImpactGallery() {
   const items = await loadItems();
 
@@ -69,15 +64,10 @@ export async function ImpactGallery() {
       <Container>
         <div className="flex items-end justify-between gap-4">
           <div>
-            <div className="text-xs font-semibold tracking-widest text-mutedInk uppercase">
-              Impact photos
-            </div>
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight md:text-3xl">
-              Real work. Real people.
-            </h2>
+            <div className="text-xs font-semibold tracking-widest text-mutedInk uppercase">Impact photos</div>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight md:text-3xl">Real work. Real people.</h2>
             <p className="mt-2 max-w-2xl text-sm text-mutedInk md:text-base">
-              These are the communities we serve — youth, women, and children — through training,
-              mentoring, and responsible lending.
+              These are the communities we serve â€” youth, women, and children â€” through training, mentoring, and responsible lending.
             </p>
           </div>
 
@@ -90,42 +80,31 @@ export async function ImpactGallery() {
         </div>
 
         <div className="mt-6 grid gap-4 md:grid-cols-3">
-          {items.map((it) => {
-            const title = safeText(it.title, "Community Impact");
-            const subtitle = safeText(
-              it.subtitle,
-              "Training, mentorship and responsible support for sustainable incomes."
-            );
+          {items.map((it) => (
+            <Link
+              key={it.id ?? it.title}
+              href={it.href}
+              className="group relative overflow-hidden rounded-3xl border border-black/10 bg-white shadow-sm"
+            >
+              <div className="relative aspect-[4/3]">
+                <Image
+                  src={it.image_url}
+                  alt={it.title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                />
+              </div>
 
-            return (
-              <Link
-                key={it.id ?? `${it.href}-${title}`}
-                href={it.href}
-                className="group relative overflow-hidden rounded-3xl border border-black/10 bg-white shadow-sm"
-              >
-                <div className="relative aspect-[4/3]">
-                  <Image
-                    src={it.image_url}
-                    alt={title}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                  />
+              <div className="p-5">
+                <div className="text-base font-semibold tracking-tight">{it.title}</div>
+                <div className="mt-1 text-sm text-mutedInk">{it.subtitle}</div>
+                <div className="mt-4 text-sm font-semibold">
+                  Learn more <span className="inline-block transition-transform duration-300 group-hover:translate-x-0.5">â†’</span>
                 </div>
-
-                <div className="p-5">
-                  <div className="text-base font-semibold tracking-tight">{title}</div>
-                  <div className="mt-1 text-sm text-mutedInk">{subtitle}</div>
-                  <div className="mt-4 text-sm font-semibold">
-                    Learn more{" "}
-                    <span className="inline-block transition-transform duration-300 group-hover:translate-x-0.5">
-                      ?
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
+              </div>
+            </Link>
+          ))}
         </div>
 
         <div className="mt-6 md:hidden">
