@@ -57,7 +57,7 @@ export function Header() {
 
           {/* Right: CTAs (desktop) */}
           <div className="hidden md:flex items-center justify-end gap-3 flex-1 min-w-0">
-            <Link href="/members/join">
+            <Link href="/members/login?tab=signup">
               <Button size="sm" variant="secondary" className="whitespace-nowrap">
                 Become a Member
               </Button>
@@ -94,7 +94,7 @@ export function Header() {
             ))}
 
             <div className="grid gap-2 pt-2">
-              <Link href="/members/join" onClick={() => setOpen(false)}>
+              <Link href="/members/login?tab=signup" onClick={() => setOpen(false)}>
                 <Button className="w-full" variant="secondary">Become a Member</Button>
               </Link>
               <Link href="/donors" onClick={() => setOpen(false)}>
@@ -107,3 +107,5 @@ export function Header() {
     </header>
   );
 }
+
+
