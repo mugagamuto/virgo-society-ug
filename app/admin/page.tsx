@@ -1,24 +1,33 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AdminGuard } from "@/components/admin/admin-guard";
 
 type Metrics = {
   members: { total: number; active: number; suspended: number };
-  
-function isLockError(msg: string) {
-  const m = (msg || "").toLowerCase();
-  return m.includes("lockmanager") || m.includes("acquiring an exclusive") || m.includes("timed out waiting") || m.includes("auth-token");
-}
-applications: { pending: number; approved: number; rejected: number };
+  applications: { pending: number; approved: number; rejected: number };
   projects: { total: number; fundable: number };
   funding: { pledged_total: number; pledged_paid: number; pledged_pending: number };
 };
 
+function isLockError(msg: string) {
+  const m = (msg || "").toLowerCase();
+  return (
+    m.includes("lockmanager") ||
+    m.includes("acquiring an exclusive") ||
+    m.includes("timed out waiting") ||
+    m.includes("auth-token")
+  );
+}
+
 async function safeJson(res: Response) {
   const t = await res.text();
-  try { return { json: JSON.parse(t), text: t }; } catch { return { json: null as any, text: t }; }
+  try {
+    return { json: JSON.parse(t), text: t };
+  } catch {
+    return { json: null as any, text: t };
+  }
 }
 
 function fmtUgx(n?: number | null) {
@@ -74,9 +83,10 @@ export default function AdminHome() {
   const [err, setErr] = useState<string | null>(null);
   const [metrics, setMetrics] = useState<Metrics | null>(null);
 
-  
-  const retriedRef = useMemo(() => ({ v: false }), []);
-async function load() {
+  // retry once for lock errors (UX only, doesn't change data logic)
+  const retriedRef = useRef(false);
+
+  async function load() {
     setLoading(true);
     setErr(null);
 
@@ -84,35 +94,49 @@ async function load() {
     const { json, text } = await safeJson(res);
 
     if (!json) {
-      setErr(`Non-JSON (${res.status}): ${text.slice(0, 200)}`);
-            // If this is a browser storage lock (often from another open tab), retry once after a short delay.
-      const msg = String((`Non-JSON (${res.status}): ${text.slice(0, 200)}`));
-      if (isLockError(msg) && !retriedRef.v) {
-        retriedRef.v = true;
-        setTimeout(() => { load(); }, 1200);
-      }setMetrics(null);
+      const msg = `Non-JSON (${res.status}): ${text.slice(0, 200)}`;
+      setErr(msg);
+      setMetrics(null);
       setLoading(false);
+
+      if (isLockError(msg) && !retriedRef.current) {
+        retriedRef.current = true;
+        setTimeout(() => {
+          load();
+        }, 1200);
+      }
       return;
     }
 
     if (!res.ok || !json.ok) {
-      setErr(json?.error?.message ?? json?.error ?? "Failed to load metrics.");
+      const msg = (json?.error?.message ?? json?.error ?? "Failed to load metrics.") as string;
+      setErr(msg);
       setMetrics(null);
       setLoading(false);
+
+      if (isLockError(msg) && !retriedRef.current) {
+        retriedRef.current = true;
+        setTimeout(() => {
+          load();
+        }, 1200);
+      }
       return;
     }
 
+    retriedRef.current = false;
     setMetrics(json.metrics as Metrics);
     setLoading(false);
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   const headerHint = useMemo(() => {
     if (!metrics) return null;
     const published = metrics.projects.fundable;
     const pending = metrics.applications.pending;
-    return `Published ${published} â€¢ Pending review ${pending}`;
+    return `Published ${published} • Pending review ${pending}`;
   }, [metrics]);
 
   return (
@@ -124,64 +148,68 @@ async function load() {
             <h1 className="mt-1 text-2xl font-semibold tracking-tight">Dashboard</h1>
             <p className="mt-1 text-sm text-mutedInk">
               Review projects, manage members, and track funding.
-              {headerHint ? <span className="ml-2 text-xs">â€¢ {headerHint}</span> : null}
+              {headerHint ? <span className="ml-2 text-xs">• {headerHint}</span> : null}
             </p>
           </div>
 
           <div className="flex gap-2">
-            <button onClick={load} className="rounded-2xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold hover:bg-black/[0.02]">
+            <button
+              onClick={load}
+              className="rounded-2xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold hover:bg-black/[0.02]"
+            >
               Refresh
             </button>
-            <Link href="/" className="rounded-2xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold hover:bg-black/[0.02]">
+            <Link
+              href="/"
+              className="rounded-2xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold hover:bg-black/[0.02]"
+            >
               Back to site
             </Link>
           </div>
         </div>
 
         {err ? (
-  <div className="rounded-3xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
-    {isLockError(err) ? (
-      <>
-        <div className="font-semibold">Session busy in another tab</div>
-        <div className="mt-1 text-red-800/80">
-          Please close other Virgo tabs/windows, then tap Refresh. This is a browser storage lock and usually resolves quickly.
-        </div>
-      </>
-    ) : (
-      err
-    )}
-  </div>
-) : null}
+          <div className="rounded-3xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+            {isLockError(err) ? (
+              <>
+                <div className="font-semibold">Session busy in another tab</div>
+                <div className="mt-1 text-red-800/80">
+                  Close other Virgo tabs/windows, then tap Refresh. This is a browser storage lock and usually resolves quickly.
+                </div>
+              </>
+            ) : (
+              err
+            )}
+          </div>
+        ) : null}
 
-        {/* Metrics */}
         <div className="grid gap-4 md:grid-cols-4">
           <MetricCard
             title="Members"
-            value={loading || !metrics ? "â€¦" : String(metrics.members.total)}
-            hint={loading || !metrics ? "Loading" : `${metrics.members.active} active â€¢ ${metrics.members.suspended} suspended`}
+            value={loading || !metrics ? "..." : String(metrics.members.total)}
+            hint={loading || !metrics ? "Loading" : `${metrics.members.active} active • ${metrics.members.suspended} suspended`}
             tone="ink"
           />
           <MetricCard
             title="Pending review"
-            value={loading || !metrics ? "â€¦" : String(metrics.applications.pending)}
+            value={loading || !metrics ? "..." : String(metrics.applications.pending)}
             hint="Applications awaiting approval"
             tone="amber"
           />
           <MetricCard
             title="Published"
-            value={loading || !metrics ? "â€¦" : String(metrics.projects.fundable)}
+            value={loading || !metrics ? "..." : String(metrics.projects.fundable)}
             hint="Projects visible on Fund a Project"
             tone="emerald"
           />
           <MetricCard
             title="Pledged total"
-            value={loading || !metrics ? "â€¦" : fmtUgx(metrics.funding.pledged_total)}
-            hint={loading || !metrics ? "" : `Paid ${fmtUgx(metrics.funding.pledged_paid)} â€¢ Pending ${fmtUgx(metrics.funding.pledged_pending)}`}
+            value={loading || !metrics ? "..." : fmtUgx(metrics.funding.pledged_total)}
+            hint={loading || !metrics ? "" : `Paid ${fmtUgx(metrics.funding.pledged_paid)} • Pending ${fmtUgx(metrics.funding.pledged_pending)}`}
             tone="ink"
           />
         </div>
 
-        {/* Navigation */}
         <div className="grid gap-4 md:grid-cols-2">
           <NavCard title="Project Applications" desc="Review pending applications, verify documents, approve/publish." href="/admin/applications" />
           <NavCard title="Manage Members" desc="View members, activate/suspend accounts." href="/admin/members" />
@@ -194,4 +222,3 @@ async function load() {
     </AdminGuard>
   );
 }
-
