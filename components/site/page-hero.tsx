@@ -11,7 +11,7 @@ export function PageHero({
   subtitle: string;
 }) {
   return (
-    <section className="py-12 md:py-16 ">
+    <section className="py-6 md:py-10 ">
       <Container>
         <Badge>{eyebrow}</Badge>
         <h1 className="mt-4 text-3xl md:text-4xl font-semibold tracking-tight">{title}</h1>
@@ -20,6 +20,7 @@ export function PageHero({
     </section>
   );
 }
+
 
 
 

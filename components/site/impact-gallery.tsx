@@ -17,7 +17,7 @@ const fallback: Item[] = [
   {
     title: "Children Support",
     subtitle: "Community programs that improve wellbeing and opportunity.",
-    image_url: "/photos/children.jpg",
+    image_url: "/brand/hero.jpg",
     href: "/impact",
     is_active: true,
     sort_order: 1,
@@ -25,7 +25,7 @@ const fallback: Item[] = [
   {
     title: "Women Groups",
     subtitle: "Training, mentorship, and access to responsible finance.",
-    image_url: "/photos/women.jpg",
+    image_url: "/brand/card-1.jpg",
     href: "/programs",
     is_active: true,
     sort_order: 2,
@@ -33,7 +33,7 @@ const fallback: Item[] = [
   {
     title: "Youth Startups",
     subtitle: "Skills-building and low-interest support for income growth.",
-    image_url: "/photos/youth.jpg",
+    image_url: "/brand/card-2.jpg",
     href: "/apply",
     is_active: true,
     sort_order: 3,
@@ -105,7 +105,7 @@ export async function ImpactGallery() {
               >
                 <div className="relative aspect-[4/3]">
                   <Image
-                    src={it.image_url}
+                    src={it.image_url || "/brand/hero.jpg"}
                     alt={title}
                     fill
                     sizes="(max-width: 768px) 100vw, 33vw"
