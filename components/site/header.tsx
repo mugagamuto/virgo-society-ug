@@ -15,19 +15,19 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-black/10 shadow-[0_1px_0_rgba(0,0,0,0.04)]">
       <Container>
-        <div className="h-16 md:h-20 flex items-center justify-between">
-          {/* Left */}
-          <Link href="/" className="inline-flex items-center">
+        <div className="h-16 md:h-20 flex items-center gap-3">
+          {/* Logo: DO NOT wrap in another Link (Logo already includes Link) */}
+          <div className="shrink-0 pointer-events-auto">
             <Logo />
-          </Link>
+          </div>
 
-          {/* Desktop middle nav */}
-          <div className="hidden md:flex items-center gap-6 text-sm">
+          {/* Desktop nav */}
+          <div className="hidden md:flex items-center gap-6 text-sm flex-1 min-w-0 pointer-events-auto">
             <NavLinks />
           </div>
 
-          {/* Right */}
-          <div className="hidden md:flex items-center gap-3">
+          {/* Desktop CTAs */}
+          <div className="hidden md:flex items-center gap-3 pointer-events-auto">
             <Link href="/members/login?tab=signup">
               <Button size="sm" variant="secondary" className="whitespace-nowrap">
                 Become a Member
@@ -38,20 +38,25 @@ export function Header() {
             </Link>
           </div>
 
-          <button
-            className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-black/10 bg-white"
-            onClick={() => setOpen((v) => !v)}
-            aria-label="Toggle menu"
-          >
-            {open ? <X size={18} /> : <Menu size={18} />}
-          </button>
+          {/* Mobile menu button: force clickable */}
+          <div className="ml-auto md:hidden pointer-events-auto">
+            <button
+              type="button"
+              aria-label="Toggle menu"
+              aria-expanded={open}
+              onClick={() => setOpen((v) => !v)}
+              className="relative z-50 touch-manipulation inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-black/10 bg-white active:scale-[0.98]"
+            >
+              {open ? <X size={18} /> : <Menu size={18} />}
+            </button>
+          </div>
         </div>
       </Container>
 
       {/* Mobile drawer */}
       <div className={cn("md:hidden border-t border-black/5", open ? "block" : "hidden")}>
         <Container className="py-4">
-          <div className="flex flex-col gap-3 text-sm">
+          <div className="flex flex-col gap-3 text-sm pointer-events-auto">
             {navItems.map((item) => (
               <Link
                 key={item.href}
