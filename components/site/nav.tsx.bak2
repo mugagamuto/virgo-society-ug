@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 export const navItems = [
   { href: "/about", label: "About" },
   { href: "/programs", label: "Programs" },
-{ href: "/members/join", label: "Become a Member" },
+{ href: "/members/login", label: "Become a Member" },
 { href: "/donors", label: "Fund a Project" },
   { href: "/donate", label: "Donate" },
   { href: "/blog", label: "Blog" },
@@ -33,7 +33,6 @@ export function NavLinks({ className }: { className?: string }) {
     </nav>
   );
 }
-
 
 
 
