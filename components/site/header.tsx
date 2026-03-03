@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
 import Link from "next/link";
@@ -13,7 +13,7 @@ export function Header() {
   const [open, setOpen] = React.useState(false);
 
   return (
-    <header className="sticky top-0 z-50 backdrop-blur bg-white/80 border-b border-black/5">
+    <header className="sticky top-0 z-50 bg-white border-b border-black/10">
       <Container className="h-16 flex items-center justify-between">
         <Logo />
 
@@ -55,6 +55,7 @@ export function Header() {
     </header>
   );
 }
+
 
 
 
