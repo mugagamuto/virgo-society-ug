@@ -2,6 +2,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 export const navItems = [
+  { href: "/", label: "Home" },
   { href: "/about", label: "About" },
   { href: "/programs", label: "Programs" },
 { href: "/donors", label: "Fund a Project" },
@@ -27,6 +28,8 @@ export function NavLinks({ className }: { className?: string }) {
     </nav>
   );
 }
+
+
 
 
 
