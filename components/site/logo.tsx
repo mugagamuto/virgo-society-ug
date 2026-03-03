@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 
 export function Logo() {
   return (
@@ -6,9 +6,10 @@ export function Logo() {
       <img
         src="/brand/virgo-logo.svg"
         alt="Virgo Building Society"
-        className="h-10 w-auto"
+        className="h-11 w-auto"
         loading="eager"
       />
     </Link>
   );
 }
+
