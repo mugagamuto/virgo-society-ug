@@ -32,7 +32,7 @@ function MiniCard({
 }) {
   return (
     <div className="overflow-hidden rounded-3xl border border-black/10 bg-white shadow-sm">
-      <img src={img} alt={title} className="h-24 w-full object-cover sm:h-28" />
+      <img src={img} alt={title} className="h-32 w-full object-cover sm:h-36" />
       <div className="p-3">
         <div className="text-sm font-semibold leading-snug">{title}</div>
         <div className="mt-1 text-xs text-black/60 leading-snug">{desc}</div>
@@ -58,7 +58,7 @@ export default function HomePage() {
             </div>
 
             <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl">
-              Fund women &amp; youth ideas that change lives Ã¢â‚¬" transparently.
+              Fund women &amp; youth ideas that change lives ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬" transparently.
             </h1>
 
             <p className="mt-4 max-w-xl text-base text-black/70">
@@ -84,7 +84,7 @@ export default function HomePage() {
               </a>
 
               <Link
-                href="/members/join"
+                href="/members/login?tab=signup"
                 className="inline-flex w-full items-center justify-center rounded-2xl border border-black/10 bg-white px-5 py-3 text-base font-semibold hover:bg-black/[0.02] sm:w-auto"
               >
                 Become a Member
@@ -103,7 +103,7 @@ export default function HomePage() {
               <img
                 src="/brand/hero.jpg"
                 alt="Virgo Building Society impact"
-                className="h-[260px] w-full object-cover sm:h-[340px] md:h-[460px]"
+                className="hidden md:block h-[460px] w-full object-cover"
                 loading="eager"
               />
             </div>
@@ -197,9 +197,11 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="mt-6 text-xs text-black/50">Ã‚(c) {new Date().getFullYear()} Virgo Building Society.</div>
+          <div className="mt-6 text-xs text-black/50">ÃƒÆ’Ã¢â‚¬Å¡(c) {new Date().getFullYear()} Virgo Building Society.</div>
         </div>
       </footer>
     </div>
   );
 }
+
+

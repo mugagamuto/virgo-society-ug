@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -58,7 +58,7 @@ function NavCard({ title, desc, href }: { title: string; desc: string; href: str
           <div className="text-sm font-semibold">{title}</div>
           <div className="mt-1 text-sm text-mutedInk">{desc}</div>
         </div>
-        <div className="text-sm font-semibold text-emerald-700 group-hover:underline">Open →</div>
+        <div className="text-sm font-semibold text-emerald-700 group-hover:underline">Open ?</div>
       </div>
     </Link>
   );
