@@ -6,7 +6,12 @@ import { AdminGuard } from "@/components/admin/admin-guard";
 
 type Metrics = {
   members: { total: number; active: number; suspended: number };
-  applications: { pending: number; approved: number; rejected: number };
+  
+function isLockError(msg: string) {
+  const m = (msg || "").toLowerCase();
+  return m.includes("lockmanager") || m.includes("acquiring an exclusive") || m.includes("timed out waiting") || m.includes("auth-token");
+}
+applications: { pending: number; approved: number; rejected: number };
   projects: { total: number; fundable: number };
   funding: { pledged_total: number; pledged_paid: number; pledged_pending: number };
 };
@@ -69,7 +74,9 @@ export default function AdminHome() {
   const [err, setErr] = useState<string | null>(null);
   const [metrics, setMetrics] = useState<Metrics | null>(null);
 
-  async function load() {
+  
+  const retriedRef = useMemo(() => ({ v: false }), []);
+async function load() {
     setLoading(true);
     setErr(null);
 
@@ -78,7 +85,12 @@ export default function AdminHome() {
 
     if (!json) {
       setErr(`Non-JSON (${res.status}): ${text.slice(0, 200)}`);
-      setMetrics(null);
+            // If this is a browser storage lock (often from another open tab), retry once after a short delay.
+      const msg = String((`Non-JSON (${res.status}): ${text.slice(0, 200)}`));
+      if (isLockError(msg) && !retriedRef.v) {
+        retriedRef.v = true;
+        setTimeout(() => { load(); }, 1200);
+      }setMetrics(null);
       setLoading(false);
       return;
     }
@@ -100,7 +112,7 @@ export default function AdminHome() {
     if (!metrics) return null;
     const published = metrics.projects.fundable;
     const pending = metrics.applications.pending;
-    return `Published ${published} • Pending review ${pending}`;
+    return `Published ${published} â€¢ Pending review ${pending}`;
   }, [metrics]);
 
   return (
@@ -112,7 +124,7 @@ export default function AdminHome() {
             <h1 className="mt-1 text-2xl font-semibold tracking-tight">Dashboard</h1>
             <p className="mt-1 text-sm text-mutedInk">
               Review projects, manage members, and track funding.
-              {headerHint ? <span className="ml-2 text-xs">• {headerHint}</span> : null}
+              {headerHint ? <span className="ml-2 text-xs">â€¢ {headerHint}</span> : null}
             </p>
           </div>
 
@@ -127,33 +139,44 @@ export default function AdminHome() {
         </div>
 
         {err ? (
-          <div className="rounded-3xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{err}</div>
-        ) : null}
+  <div className="rounded-3xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+    {isLockError(err) ? (
+      <>
+        <div className="font-semibold">Session busy in another tab</div>
+        <div className="mt-1 text-red-800/80">
+          Please close other Virgo tabs/windows, then tap Refresh. This is a browser storage lock and usually resolves quickly.
+        </div>
+      </>
+    ) : (
+      err
+    )}
+  </div>
+) : null}
 
         {/* Metrics */}
         <div className="grid gap-4 md:grid-cols-4">
           <MetricCard
             title="Members"
-            value={loading || !metrics ? "…" : String(metrics.members.total)}
-            hint={loading || !metrics ? "Loading" : `${metrics.members.active} active • ${metrics.members.suspended} suspended`}
+            value={loading || !metrics ? "â€¦" : String(metrics.members.total)}
+            hint={loading || !metrics ? "Loading" : `${metrics.members.active} active â€¢ ${metrics.members.suspended} suspended`}
             tone="ink"
           />
           <MetricCard
             title="Pending review"
-            value={loading || !metrics ? "…" : String(metrics.applications.pending)}
+            value={loading || !metrics ? "â€¦" : String(metrics.applications.pending)}
             hint="Applications awaiting approval"
             tone="amber"
           />
           <MetricCard
             title="Published"
-            value={loading || !metrics ? "…" : String(metrics.projects.fundable)}
+            value={loading || !metrics ? "â€¦" : String(metrics.projects.fundable)}
             hint="Projects visible on Fund a Project"
             tone="emerald"
           />
           <MetricCard
             title="Pledged total"
-            value={loading || !metrics ? "…" : fmtUgx(metrics.funding.pledged_total)}
-            hint={loading || !metrics ? "" : `Paid ${fmtUgx(metrics.funding.pledged_paid)} • Pending ${fmtUgx(metrics.funding.pledged_pending)}`}
+            value={loading || !metrics ? "â€¦" : fmtUgx(metrics.funding.pledged_total)}
+            hint={loading || !metrics ? "" : `Paid ${fmtUgx(metrics.funding.pledged_paid)} â€¢ Pending ${fmtUgx(metrics.funding.pledged_pending)}`}
             tone="ink"
           />
         </div>
@@ -171,3 +194,4 @@ export default function AdminHome() {
     </AdminGuard>
   );
 }
+
