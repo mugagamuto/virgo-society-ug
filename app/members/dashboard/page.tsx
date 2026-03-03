@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -124,6 +124,7 @@ export default function MemberDashboard() {
             <div>
               <div className="text-xs font-semibold tracking-widest text-mutedInk uppercase">Member Portal</div>
               <h1 className="mt-1 text-2xl font-semibold tracking-tight">Welcome, {greetingName}</h1>
+<div className="mt-4 flex gap-3"><a href="/members/dashboard?new=1" className="rounded-2xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700">Create New Project</a></div>
               <p className="mt-1 text-sm text-mutedInk">
                 Track your projects, upload documents, submit for review, and monitor funding progress.
               </p>
@@ -204,7 +205,7 @@ export default function MemberDashboard() {
                           href={`/members/projects/${p.id}`}
                           className="inline-flex items-center justify-center rounded-2xl bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-black/90"
                         >
-                          Open →
+                          Open ?
                         </Link>
                       </div>
                     </div>
@@ -247,3 +248,4 @@ export default function MemberDashboard() {
     </div>
   );
 }
+
