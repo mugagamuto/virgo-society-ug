@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React from "react";
 import Link from "next/link";
@@ -61,7 +61,7 @@ export default function HomePage() {
             </div>
 
             <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl">
-              Fund women & youth ideas that change lives — transparently.
+              Fund women & youth ideas that change lives � transparently.
             </h1>
 
             <p className="mt-4 max-w-xl text-base text-black/70">
@@ -90,7 +90,7 @@ export default function HomePage() {
 
             {/* Stats: 1 column on mobile, 2 on larger */}
             <div className="mt-8 grid gap-3 sm:grid-cols-2">
-              <Stat label="Approval workflow" value="Group → Admin → Donor" />
+              <Stat label="Approval workflow" value="Group ? Admin ? Donor" />
               <Stat label="Funding visibility" value="Live totals & progress" />
             </div>
           </div>
@@ -121,7 +121,6 @@ export default function HomePage() {
             </div>
 
             <div className="text-xs text-black/60">
-              Images should exist at <b>/public/brand/hero.jpg</b> and <b>card-1.jpg</b>…<b>card-3.jpg</b>.
             </div>
           </div>
         </div>
@@ -192,7 +191,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="mt-6 text-xs text-black/50">© {new Date().getFullYear()} Virgo Building Society.</div>
+          <div className="mt-6 text-xs text-black/50">� {new Date().getFullYear()} Virgo Building Society.</div>
         </div>
       </footer>
     </div>
