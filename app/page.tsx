@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { ImpactGallery } from "@/components/site/impact-gallery";
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
@@ -20,36 +21,30 @@ function Pill({ children }: { children: React.ReactNode }) {
   );
 }
 
-import { ImpactGallery } from "@/components/site/impact-gallery";
+function MiniCard({
+  img,
+  title,
+  desc,
+}: {
+  img: string;
+  title: string;
+  desc: string;
+}) {
+  return (
+    <div className="overflow-hidden rounded-3xl border border-black/10 bg-white shadow-sm">
+      <img src={img} alt={title} className="h-24 w-full object-cover sm:h-28" />
+      <div className="p-3">
+        <div className="text-sm font-semibold leading-snug">{title}</div>
+        <div className="mt-1 text-xs text-black/60 leading-snug">{desc}</div>
+      </div>
+    </div>
+  );
+}
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[520px] bg-gradient-to-b from-emerald-50 via-white to-white" />
-
-      {/* NAV */}
-      <header className="border-b border-black/10 bg-white/80 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-          {/* Optional: add logo here if you want */}
-          <div className="text-sm font-semibold text-black/80">Virgo Building Society</div>
-
-          <nav className="flex items-center gap-2">
-            <Link
-              href="/donors"
-              className="hidden rounded-2xl px-4 py-2 text-sm font-semibold text-black/70 hover:bg-black/[0.04] sm:inline-flex"
-            >
-              Fund a Project
-            </Link>
-
-            <Link
-              href="/members/login"
-              className="rounded-2xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold hover:bg-black/[0.02]"
-            >
-              Member Login
-            </Link>
-          </nav>
-        </div>
-      </header>
 
       {/* HERO */}
       <section className="mx-auto max-w-6xl px-4 py-8 sm:py-12">
@@ -63,7 +58,7 @@ export default function HomePage() {
             </div>
 
             <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl">
-              Fund women & youth ideas that change lives â€" transparently.
+              Fund women &amp; youth ideas that change lives � transparently.
             </h1>
 
             <p className="mt-4 max-w-xl text-base text-black/70">
@@ -71,7 +66,6 @@ export default function HomePage() {
               Groups submit projects with clear goals and budgets, admin verifies, then donors fund with confidence.
             </p>
 
-            {/* Buttons: full width on mobile */}
             <div className="mt-6 grid gap-3 sm:flex sm:flex-row">
               <Link
                 href="/donors"
@@ -88,9 +82,15 @@ export default function HomePage() {
               >
                 WhatsApp Support
               </a>
+
+              <Link
+                href="/members/join"
+                className="inline-flex w-full items-center justify-center rounded-2xl border border-black/10 bg-white px-5 py-3 text-base font-semibold hover:bg-black/[0.02] sm:w-auto"
+              >
+                Become a Member
+              </Link>
             </div>
 
-            {/* Stats: 1 column on mobile, 2 on larger */}
             <div className="mt-8 grid gap-3 sm:grid-cols-2">
               <Stat label="Approval workflow" value="Group ? Admin ? Donor" />
               <Stat label="Funding visibility" value="Live totals & progress" />
@@ -99,7 +99,6 @@ export default function HomePage() {
 
           {/* RIGHT */}
           <div className="space-y-4">
-            {/* Hero image with safe height */}
             <div className="relative overflow-hidden rounded-[28px] border border-black/10 bg-black/[0.02] shadow-sm">
               <img
                 src="/brand/hero.jpg"
@@ -109,24 +108,30 @@ export default function HomePage() {
               />
             </div>
 
-            {/* Cards: 2 columns on mobile for nicer fit */}
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              <div className="overflow-hidden rounded-3xl border border-black/10 bg-white shadow-sm">
-                <img src="/brand/card-1.jpg" alt="Women and youth innovation" className="h-24 w-full object-cover sm:h-28" />
-              </div>
-              <div className="overflow-hidden rounded-3xl border border-black/10 bg-white shadow-sm">
-                <img src="/brand/card-2.jpg" alt="Community project teams" className="h-24 w-full object-cover sm:h-28" />
-              </div>
-              <div className="overflow-hidden rounded-3xl border border-black/10 bg-white shadow-sm">
-                <img src="/brand/card-3.jpg" alt="Transparent impact" className="h-24 w-full object-cover sm:h-28" />
-              </div>
-            </div>
-
-            <div className="text-xs text-black/60">
+            {/* Cards with description */}
+            <div className="grid gap-3 sm:grid-cols-3">
+              <MiniCard
+                img="/brand/card-1.jpg"
+                title="Women Groups"
+                desc="Training, mentorship and access to responsible finance."
+              />
+              <MiniCard
+                img="/brand/card-2.jpg"
+                title="Youth Startups"
+                desc="Skills-building and low-interest support for income growth."
+              />
+              <MiniCard
+                img="/brand/card-3.jpg"
+                title="Children Support"
+                desc="Targeted welfare and community programs where needed."
+              />
             </div>
           </div>
         </div>
       </section>
+
+      {/* IMPACT GALLERY (with descriptions) */}
+      <ImpactGallery />
 
       {/* HOW IT WORKS */}
       <section className="border-t border-black/10 bg-white">
@@ -166,7 +171,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* FOOTER */}
       <footer className="border-t border-black/10 bg-white">
         <div className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -193,13 +197,9 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="mt-6 text-xs text-black/50">Â© {new Date().getFullYear()} Virgo Building Society.</div>
+          <div className="mt-6 text-xs text-black/50">� {new Date().getFullYear()} Virgo Building Society.</div>
         </div>
       </footer>
     </div>
   );
 }
-
-
-
-
