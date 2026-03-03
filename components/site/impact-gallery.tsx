@@ -76,7 +76,7 @@ export async function ImpactGallery() {
               Real work. Real people.
             </h2>
             <p className="mt-2 max-w-2xl text-sm text-mutedInk md:text-base">
-              These are the communities we serve — youth, women, and children — through training,
+              These are the communities we serve - youth, women, and children - through training,
               mentoring, and responsible lending.
             </p>
           </div>

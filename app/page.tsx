@@ -58,7 +58,7 @@ export default function HomePage() {
             </div>
 
             <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl">
-              Fund women &amp; youth ideas that change lives â€" transparently.
+              Fund women &amp; youth ideas that change lives Ã¢â‚¬" transparently.
             </h1>
 
             <p className="mt-4 max-w-xl text-base text-black/70">
@@ -197,7 +197,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="mt-6 text-xs text-black/50">Â(c) {new Date().getFullYear()} Virgo Building Society.</div>
+          <div className="mt-6 text-xs text-black/50">Ã‚(c) {new Date().getFullYear()} Virgo Building Society.</div>
         </div>
       </footer>
     </div>
