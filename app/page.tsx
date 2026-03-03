@@ -1,4 +1,8 @@
-﻿import Link from "next/link";
+﻿"use client";
+
+import React from "react";
+import Link from "next/link";
+import Image from "next/image";
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
@@ -58,8 +62,8 @@ export default function HomePage() {
             </h1>
 
             <p className="mt-4 max-w-xl text-base text-black/70">
-              Virgo Building Society helps members submit projects with clear goals and budget breakdowns. Admin verifies
-              supporting documents, approves and publishes projects to donors — so every shilling supports real impact.
+              Virgo Building Society helps women and youth groups submit projects with clear goals and budget breakdowns.
+              Admin verifies supporting documents, approves and publishes projects to donors — so every shilling supports real impact.
             </p>
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -70,7 +74,6 @@ export default function HomePage() {
                 Fund a Project
               </Link>
 
-              {/* WhatsApp button — NO bounce/animation */}
               <a
                 href="https://wa.me/256780787228"
                 target="_blank"
@@ -82,36 +85,48 @@ export default function HomePage() {
             </div>
 
             <div className="mt-8 grid grid-cols-2 gap-3">
-              <Stat label="Approval workflow" value="Member → Admin → Donor" />
+              <Stat label="Approval workflow" value="Group → Admin → Donor" />
               <Stat label="Funding visibility" value="Live totals & progress" />
             </div>
           </div>
 
           <div className="space-y-4">
-            {/* REAL images (put these files in /public/brand/) */}
+            {/* REAL images in /public/brand/ */}
             <div className="relative overflow-hidden rounded-[32px] border border-black/10 bg-black/[0.02] shadow-sm">
-              <img
+              <Image
                 src="/brand/hero.jpg"
                 alt="Virgo Building Society"
+                width={1400}
+                height={900}
+                priority
                 className="h-[360px] w-full object-cover md:h-[460px]"
-                loading="eager"
               />
             </div>
 
             <div className="grid grid-cols-3 gap-3">
-              <div className="overflow-hidden rounded-3xl border border-black/10 bg-white shadow-sm">
-                <img src="/brand/card-1.jpg" alt="Impact" className="h-24 w-full object-cover md:h-28" />
-              </div>
-              <div className="overflow-hidden rounded-3xl border border-black/10 bg-white shadow-sm">
-                <img src="/brand/card-2.jpg" alt="Community" className="h-24 w-full object-cover md:h-28" />
-              </div>
-              <div className="overflow-hidden rounded-3xl border border-black/10 bg-white shadow-sm">
-                <img src="/brand/card-3.jpg" alt="Transparency" className="h-24 w-full object-cover md:h-28" />
-              </div>
+              {[
+                { src: "/brand/card-1.jpg", alt: "Women and youth innovation" },
+                { src: "/brand/card-2.jpg", alt: "Community projects" },
+                { src: "/brand/card-3.jpg", alt: "Transparent impact" },
+              ].map((item) => (
+                <div
+                  key={item.src}
+                  className="overflow-hidden rounded-3xl border border-black/10 bg-white shadow-sm"
+                >
+                  <Image
+                    src={item.src}
+                    alt={item.alt}
+                    width={600}
+                    height={400}
+                    className="h-24 w-full object-cover md:h-28"
+                  />
+                </div>
+              ))}
             </div>
 
             <div className="text-xs text-black/60">
-              If images look empty, confirm these exist: <b>/public/brand/hero.jpg</b> and <b>card-1.jpg</b>…<b>card-3.jpg</b>.
+              If images look empty, confirm these exist: <b>/public/brand/hero.jpg</b> and{" "}
+              <b>card-1.jpg</b>…<b>card-3.jpg</b>.
             </div>
           </div>
         </div>
@@ -125,7 +140,7 @@ export default function HomePage() {
               <div className="text-xs font-semibold tracking-widest text-black/50 uppercase">How it works</div>
               <h2 className="mt-2 text-2xl font-semibold tracking-tight">Clear steps. Strong accountability.</h2>
               <p className="mt-2 max-w-2xl text-sm text-black/70">
-                Members submit project details + proposal & budget breakdown. Admin verifies supporting documents, then publishes
+                Groups submit project details + proposal & budget breakdown. Admin verifies supporting documents, then publishes
                 approved projects to donors.
               </p>
             </div>
@@ -139,7 +154,7 @@ export default function HomePage() {
 
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm">
-              <div className="text-base font-semibold">1) Member submits</div>
+              <div className="text-base font-semibold">1) Group submits</div>
               <p className="mt-2 text-sm text-black/70">Title, description, goals, stage, proposal + budget breakdown.</p>
             </div>
             <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm">
