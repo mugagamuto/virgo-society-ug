@@ -32,8 +32,14 @@ function MiniCard({
 }) {
   return (
     <div className="overflow-hidden rounded-3xl border border-black/10 bg-white shadow-sm">
-      <img src={img} alt={title} className="h-32 w-full object-cover sm:h-36" />
-      <div className="p-3">
+      {/* Taller images + object-top to avoid cutting heads */}
+      <img
+        src={img}
+        alt={title}
+        className="h-44 w-full object-cover object-top sm:h-40 md:h-44"
+        loading="lazy"
+      />
+      <div className="p-4">
         <div className="text-sm font-semibold leading-snug">{title}</div>
         <div className="mt-1 text-xs text-black/60 leading-snug">{desc}</div>
       </div>
@@ -44,11 +50,12 @@ function MiniCard({
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
-      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[520px] bg-gradient-to-b from-emerald-50 via-white to-white" />
+      {/* Soft brand glow */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[560px] bg-gradient-to-b from-emerald-50 via-white to-white" />
 
       {/* HERO */}
-      <section className="mx-auto max-w-6xl px-4 py-8 sm:py-12">
-        <div className="grid gap-7 md:grid-cols-2 md:items-center">
+      <section className="mx-auto max-w-6xl px-4 pt-6 pb-10 sm:pt-10 sm:pb-14">
+        <div className="grid gap-8 md:grid-cols-2 md:items-center">
           {/* LEFT */}
           <div>
             <div className="flex flex-wrap gap-2">
@@ -58,7 +65,7 @@ export default function HomePage() {
             </div>
 
             <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl">
-              Fund women &amp; youth ideas that change lives ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬" transparently.
+              Fund women and youth ideas that change lives, transparently.
             </h1>
 
             <p className="mt-4 max-w-xl text-base text-black/70">
@@ -92,23 +99,35 @@ export default function HomePage() {
             </div>
 
             <div className="mt-8 grid gap-3 sm:grid-cols-2">
-              <Stat label="Approval workflow" value="Group ? Admin ? Donor" />
-              <Stat label="Funding visibility" value="Live totals & progress" />
+              <Stat label="Approval workflow" value="Group -> Admin -> Donor" />
+              <Stat label="Funding visibility" value="Live totals and progress" />
             </div>
           </div>
 
           {/* RIGHT */}
           <div className="space-y-4">
-            <div className="relative overflow-hidden rounded-[28px] border border-black/10 bg-black/[0.02] shadow-sm">
+            {/* Mobile: hero becomes a background banner (clean + useful) */}
+            <div className="relative overflow-hidden rounded-[28px] border border-black/10 shadow-sm">
+              <div className="relative h-[220px] sm:h-[280px] md:hidden bg-[url('/brand/hero.jpg')] bg-cover bg-center">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
+                <div className="absolute bottom-0 p-5">
+                  <div className="text-white text-sm font-semibold">Transparent community funding</div>
+                  <div className="mt-1 text-white/85 text-xs">
+                    Real projects, clear budgets, visible progress.
+                  </div>
+                </div>
+              </div>
+
+              {/* Desktop: show full image normally */}
               <img
                 src="/brand/hero.jpg"
                 alt="Virgo Building Society impact"
-                className="hidden md:block h-[460px] w-full object-cover"
+                className="hidden md:block h-[460px] w-full object-cover object-center"
                 loading="eager"
               />
             </div>
 
-            {/* Cards with description */}
+            {/* Cards */}
             <div className="grid gap-3 sm:grid-cols-3">
               <MiniCard
                 img="/brand/card-1.jpg"
@@ -130,7 +149,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* IMPACT GALLERY (with descriptions) */}
+      {/* IMPACT GALLERY */}
       <ImpactGallery />
 
       {/* HOW IT WORKS */}
@@ -157,20 +176,21 @@ export default function HomePage() {
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm">
               <div className="text-base font-semibold">1) Group submits</div>
-              <p className="mt-2 text-sm text-black/70">Title, description, goals, proposal + budget breakdown.</p>
+              <p className="mt-2 text-sm text-black/70">Title, description, goals, proposal and budget breakdown.</p>
             </div>
             <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm">
               <div className="text-base font-semibold">2) Admin verifies</div>
-              <p className="mt-2 text-sm text-black/70">Supporting documents stay private. Approve/reject with notes.</p>
+              <p className="mt-2 text-sm text-black/70">Supporting documents stay private. Approve or reject with notes.</p>
             </div>
             <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm">
               <div className="text-base font-semibold">3) Donors fund</div>
-              <p className="mt-2 text-sm text-black/70">Approved projects go public with budget + progress updates.</p>
+              <p className="mt-2 text-sm text-black/70">Approved projects go public with budget and progress updates.</p>
             </div>
           </div>
         </div>
       </section>
 
+      {/* Footer (simple) */}
       <footer className="border-t border-black/10 bg-white">
         <div className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -197,11 +217,9 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="mt-6 text-xs text-black/50">ÃƒÆ’Ã¢â‚¬Å¡(c) {new Date().getFullYear()} Virgo Building Society.</div>
+          <div className="mt-6 text-xs text-black/50">(c) {new Date().getFullYear()} Virgo Building Society.</div>
         </div>
       </footer>
     </div>
   );
 }
-
-
