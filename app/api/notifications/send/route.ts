@@ -1,4 +1,4 @@
-export const runtime = "nodejs";
+﻿export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { createClient } from "@supabase/supabase-js";
@@ -55,7 +55,7 @@ function templateFor(event: string) {
 
   if (event === "project_submitted") {
     return {
-      subject: "Project submitted — awaiting approval",
+      subject: "Project submitted â€” awaiting approval",
       html: wrapEmail(
         "Project submitted",
         "Awaiting admin approval",
@@ -72,7 +72,7 @@ function templateFor(event: string) {
 
   if (event === "project_approved") {
     return {
-      subject: "Good news — your project was approved",
+      subject: "Good news â€” your project was approved",
       html: wrapEmail(
         "Project approved",
         "Next step: publishing",
@@ -86,7 +86,7 @@ function templateFor(event: string) {
 
   if (event === "project_rejected") {
     return {
-      subject: "Project update — not approved",
+      subject: "Project update â€” not approved",
       html: wrapEmail(
         "Project not approved",
         "Please review feedback and resubmit",
@@ -100,12 +100,12 @@ function templateFor(event: string) {
 
   if (event === "project_funded") {
     return {
-      subject: "Congratulations — your project is funded",
+      subject: "Congratulations â€” your project is funded",
       html: wrapEmail(
         "Project funded",
         "Thank you for your work",
         `<p style="margin:0 0 12px;font-size:15px;line-height:1.6;color:#334155;">
-          Great news — your project has been marked as funded. Please keep updates and receipts ready where required.
+          Great news â€” your project has been marked as funded. Please keep updates and receipts ready where required.
         </p>
         <div style="margin-top:16px;">${primaryButton(dash, "Go to dashboard")}</div>`
       ),
@@ -114,7 +114,7 @@ function templateFor(event: string) {
 
   // fallback
   return {
-    subject: "Virgo Building Society — Update",
+    subject: "Virgo Building Society â€” Update",
     html: wrapEmail(
       "Update",
       "Check your dashboard",
@@ -152,7 +152,7 @@ function getSupabaseAdmin() {
 
 export async function POST(req: Request) {
   try {
-    const secret = process.env.NOTIFICATIONS_CRON_SECRET;
+    const secret = process.env.NOTIFICATIONS_CRON_SECRET || process.env.CRON_SECRET;
     if (!secret) throw new Error("Missing NOTIFICATIONS_CRON_SECRET env var.");
 
     const auth = req.headers.get("authorization") || "";
