@@ -6,11 +6,10 @@ import { createClient } from "@supabase/supabase-js";
 type OutboxRow = {
   id: number;
   created_at: string;
-  event: "project_submitted" | "project_approved" | "project_rejected" | "project_funded" | string;
-  project_id: string;
   to_email: string;
-  subject: string | null;
-  html: string | null;
+  template: string | null;
+  payload: any | null; // jsonb
+  event: string | null;
   sent_at: string | null;
 };
 
@@ -126,6 +125,87 @@ function templateFor(event: string) {
   };
 }
 
+function renderFromRow(row: OutboxRow) {
+  const dash = "https://www.virgosociety.org/members/dashboard";
+
+  const payload = row.payload || {};
+  const projectTitle = payload.project_title || payload.title || "your project";
+  const reason = payload.reason || payload.note || payload.admin_note || "";
+
+  // Prefer explicit template name, else fall back to event
+  const key = (row.template || row.event || "").toLowerCase().trim();
+
+  if (key === "project_submitted") {
+    return {
+      subject: "Project submitted — awaiting approval",
+      html: wrapEmail(
+        "Project submitted",
+        "Awaiting admin approval",
+        `<p style="margin:0 0 12px;font-size:15px;line-height:1.6;color:#334155;">
+          We received <b>${projectTitle}</b>. Admin will review and verify details before approval.
+        </p>
+        <div style="margin-top:16px;">${primaryButton(dash, "View dashboard")}</div>`
+      ),
+    };
+  }
+
+  if (key === "project_approved") {
+    return {
+      subject: "Good news — your project was approved",
+      html: wrapEmail(
+        "Project approved",
+        "Next step: publishing",
+        `<p style="margin:0 0 12px;font-size:15px;line-height:1.6;color:#334155;">
+          <b>${projectTitle}</b> has been approved and will be published for donors.
+        </p>
+        <div style="margin-top:16px;">${primaryButton(dash, "Open dashboard")}</div>`
+      ),
+    };
+  }
+
+  if (key === "project_rejected") {
+    const extra = reason ? `<p style="margin:12px 0 0;font-size:13px;line-height:1.6;color:#64748b;"><b>Reason:</b> ${reason}</p>` : "";
+    return {
+      subject: "Project update — not approved",
+      html: wrapEmail(
+        "Project not approved",
+        "Please review feedback and resubmit",
+        `<p style="margin:0 0 12px;font-size:15px;line-height:1.6;color:#334155;">
+          <b>${projectTitle}</b> was not approved at this time. Please review admin notes in your dashboard and resubmit.
+        </p>
+        ${extra}
+        <div style="margin-top:16px;">${primaryButton(dash, "View dashboard")}</div>`
+      ),
+    };
+  }
+
+  if (key === "project_funded") {
+    return {
+      subject: "Congratulations — your project is funded",
+      html: wrapEmail(
+        "Project funded",
+        "Thank you for your work",
+        `<p style="margin:0 0 12px;font-size:15px;line-height:1.6;color:#334155;">
+          Great news — <b>${projectTitle}</b> has been marked as funded. Please keep progress updates ready.
+        </p>
+        <div style="margin-top:16px;">${primaryButton(dash, "Go to dashboard")}</div>`
+      ),
+    };
+  }
+
+  // fallback
+  return {
+    subject: "Virgo Building Society — Update",
+    html: wrapEmail(
+      "Update",
+      "Check your dashboard",
+      `<p style="margin:0 0 12px;font-size:15px;line-height:1.6;color:#334155;">
+        There is an update on your account. Please check your dashboard.
+      </p>
+      <div style="margin-top:16px;">${primaryButton(dash, "Open dashboard")}</div>`
+    ),
+  };
+}
 // ---- SMTP Transport (Titan) ----
 function getTransport() {
   const host = process.env.TITAN_SMTP_HOST || "smtp.titan.email";
@@ -170,7 +250,7 @@ export async function POST(req: Request) {
     // fetch unsent rows
     const { data, error } = await supabase
       .from("notification_outbox")
-      .select("id, created_at, event, project_id, to_email, subject, html, sent_at")
+      .select("id, created_at, to_email, template, payload, event, sent_at")
       .is("sent_at", null)
       .order("created_at", { ascending: true })
       .limit(25);
@@ -183,11 +263,10 @@ export async function POST(req: Request) {
 
     for (const row of rows) {
       try {
-        const t = templateFor(row.event);
-        const subject = row.subject?.trim() ? row.subject : t.subject;
-        const html = row.html?.trim() ? row.html : t.html;
-
-        await transport.sendMail({
+        const t = renderFromRow(row);
+        const subject = t.subject;
+        const html = t.html;
+await transport.sendMail({
           from: `${fromName} <${fromEmail}>`,
           to: row.to_email,
           subject,
@@ -214,4 +293,5 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: e?.message || String(e) }, { status: 500 });
   }
 }
+
 
