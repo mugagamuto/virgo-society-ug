@@ -236,6 +236,16 @@ export async function GET(req: Request) {
   return handleRequest(req);
 }
 
+async function handleRequest(req: Request) {
+  return handleRequest(req);
+}
+
+
+export async function GET(req: Request) {
+  return handleRequest(req);
+}
+
 export async function POST(req: Request) {
   return handleRequest(req);
 }
+
