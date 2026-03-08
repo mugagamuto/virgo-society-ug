@@ -1,8 +1,7 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 import Link from "next/link";
-import { ImpactGallery } from "@/components/site/impact-gallery";
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
@@ -32,7 +31,6 @@ function MiniCard({
 }) {
   return (
     <div className="overflow-hidden rounded-3xl border border-black/10 bg-white shadow-sm">
-      {/* Taller images + object-top to avoid cutting heads */}
       <img
         src={img}
         alt={title}
@@ -50,13 +48,10 @@ function MiniCard({
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
-      {/* Soft brand glow */}
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[560px] bg-gradient-to-b from-emerald-50 via-white to-white" />
 
-      {/* HERO */}
       <section className="mx-auto max-w-6xl px-4 pt-6 pb-10 sm:pt-10 sm:pb-14">
         <div className="grid gap-8 md:grid-cols-2 md:items-center">
-          {/* LEFT */}
           <div>
             <div className="flex flex-wrap gap-2">
               <Pill>Verified community projects</Pill>
@@ -104,13 +99,11 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* RIGHT */}
           <div className="space-y-4">
-            {/* Mobile: hero becomes a background banner (clean + useful) */}
             <div className="relative overflow-hidden rounded-[28px] border border-black/10 shadow-sm">
-              <div className="relative h-[220px] sm:h-[280px] md:hidden bg-[url('/brand/hero.jpg')] bg-cover bg-center">
-                <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
-                <div className="absolute bottom-0 p-5">
+              <div className="relative pointer-events-none h-[220px] sm:h-[280px] md:hidden bg-[url('/brand/hero.jpg')] bg-cover bg-center">
+                <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
+                <div className="absolute bottom-0 p-5 pointer-events-none">
                   <div className="text-white text-sm font-semibold">Transparent community funding</div>
                   <div className="mt-1 text-white/85 text-xs">
                     Real projects, clear budgets, visible progress.
@@ -118,7 +111,6 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Desktop: show full image normally */}
               <img
                 src="/brand/hero.jpg"
                 alt="Virgo Building Society impact"
@@ -127,7 +119,6 @@ export default function HomePage() {
               />
             </div>
 
-            {/* Cards */}
             <div className="grid gap-3 sm:grid-cols-3">
               <MiniCard
                 img="/brand/card-1.jpg"
@@ -149,10 +140,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* IMPACT GALLERY */}
-      <ImpactGallery />
-
-      {/* HOW IT WORKS */}
       <section className="border-t border-black/10 bg-white">
         <div className="mx-auto max-w-6xl px-4 py-10 sm:py-12">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -190,7 +177,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Footer (simple) */}
       <footer className="border-t border-black/10 bg-white">
         <div className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -223,4 +209,3 @@ export default function HomePage() {
     </div>
   );
 }
-

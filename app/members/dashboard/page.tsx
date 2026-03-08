@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -158,11 +158,11 @@ export default function MemberDashboard() {
 
       <div className="mx-auto max-w-6xl px-4 py-8">
         {loading ? (
-          <div className="rounded-3xl border border-black/10 bg-black/[0.02] p-6 text-sm text-mutedInk">Loadingâ€¦</div>
+          <div className="rounded-3xl border border-black/10 bg-black/[0.02] p-6 text-sm text-mutedInk">LoadingÃ¢â‚¬Â¦</div>
         ) : (
           <>
             <div className="grid gap-3 md:grid-cols-3">
-              <Card title="Projects" value={String(metrics.total)} sub={`${metrics.pending} pending â€¢ ${metrics.approved} approved`} />
+              <Card title="Projects" value={String(metrics.total)} sub={`${metrics.pending} pending Ã¢â‚¬Â¢ ${metrics.approved} approved`} />
               <Card title="Fundable" value={String(metrics.fundable)} sub="Approved and visible on Fund a Project" />
               <Card title="Total funded" value={`UGX ${fmtUGX(metrics.totalFunded)}`} sub={`Total goal UGX ${fmtUGX(metrics.totalGoal)}`} />
             </div>
@@ -183,7 +183,7 @@ export default function MemberDashboard() {
 
               {projects.length === 0 ? (
                 <div className="mt-4 rounded-2xl border border-black/10 bg-black/[0.02] p-4 text-sm text-mutedInk">
-                  No projects yet. Use â€œCreate Projectâ€ on this page (top action) or ask admin to enable it if hidden.
+                  No projects yet. Use Ã¢â‚¬Å“Create ProjectÃ¢â‚¬Â on this page (top action) or ask admin to enable it if hidden.
                 </div>
               ) : (
                 <div className="mt-4 grid gap-3">
@@ -193,11 +193,11 @@ export default function MemberDashboard() {
                         <div>
                           <div className="text-sm font-semibold">{p.title || "Untitled project"}</div>
                           <div className="mt-1 text-xs text-mutedInk">
-                            {(p.org_name || "").trim()} {p.district ? `â€¢ ${p.district}` : ""} â€¢ Status: {p.status || "draft"} â€¢ Fundable:{" "}
+                            {(p.org_name || "").trim()} {p.district ? `Ã¢â‚¬Â¢ ${p.district}` : ""} Ã¢â‚¬Â¢ Status: {p.status || "draft"} Ã¢â‚¬Â¢ Fundable:{" "}
                             {p.is_fundable ? "Yes" : "No"}
                           </div>
                           <div className="mt-1 text-xs text-mutedInk">
-                            Goal: UGX {fmtUGX(Number(p.goal_ugx ?? 0))} â€¢ Funded: UGX {fmtUGX(Number(p.funded_ugx ?? p.amount_raised_ugx ?? 0))}
+                            Goal: UGX {fmtUGX(Number(p.goal_ugx ?? 0))} Ã¢â‚¬Â¢ Funded: UGX {fmtUGX(Number(p.funded_ugx ?? p.amount_raised_ugx ?? 0))}
                           </div>
                         </div>
 
@@ -234,7 +234,7 @@ export default function MemberDashboard() {
                           <div className="h-full bg-emerald-700" style={{ width: `${pct}%` }} />
                         </div>
                         <div className="mt-2 text-xs text-mutedInk">
-                          UGX {fmtUGX(p.raised)} raised â€¢ Goal UGX {fmtUGX(p.goal)}
+                          UGX {fmtUGX(p.raised)} raised Ã¢â‚¬Â¢ Goal UGX {fmtUGX(p.goal)}
                         </div>
                       </div>
                     );
@@ -248,5 +248,6 @@ export default function MemberDashboard() {
     </div>
   );
 }
+
 
 
