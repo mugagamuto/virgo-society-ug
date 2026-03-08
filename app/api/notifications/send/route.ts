@@ -7,10 +7,14 @@ import { createClient } from "@supabase/supabase-js";
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 function getSupabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  );
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!url || !serviceRoleKey) {
+    throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+  }
+
+  return createClient(url, serviceRoleKey);
 }
 
 async function processQueue() {
@@ -28,7 +32,7 @@ async function processQueue() {
   for (const row of data || []) {
 
     await resend.emails.send({
-      from: process.env.MAIL_FROM,
+      from: process.env.MAIL_FROM || "Virgo Building Society <no-reply@virgosociety.org>",
       to: row.to_email,
       subject: "Virgo Building Society Notification",
       html: `<p>You have a new notification.</p>`
@@ -76,3 +80,5 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   return handler(req);
 }
+
+
