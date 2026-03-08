@@ -1,0 +1,84 @@
+"use client";
+
+import * as React from "react";
+import Link from "next/link";
+import { Menu, X } from "lucide-react";
+import { Logo } from "./logo";
+import { NavLinks, navItems } from "./nav";
+import { Button } from "@/components/ui/button";
+import { Container } from "./container";
+import { cn } from "@/lib/utils";
+
+export function Header() {
+  const [open, setOpen] = React.useState(false);
+
+  return (
+    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-black/10 shadow-[0_1px_0_rgba(0,0,0,0.04)]">
+      <Container>
+        <div className="h-16 md:h-20 flex items-center gap-3">
+          {/* Logo: DO NOT wrap in another Link (Logo already includes Link) */}
+          <div className="shrink-0 pointer-events-auto">
+            <Logo />
+          </div>
+
+          {/* Desktop nav */}
+          <div className="hidden md:flex items-center gap-6 text-sm flex-1 min-w-0 pointer-events-auto">
+            <NavLinks />
+          </div>
+
+          {/* Desktop CTAs */}
+          <div className="hidden md:flex items-center gap-3 pointer-events-auto">
+            <Link href="/members/login?tab=signup">
+              <Button size="sm" variant="secondary" className="whitespace-nowrap">
+                Become a Member
+              </Button>
+            </Link>
+            <Link href="/donors">
+              <Button size="sm" className="whitespace-nowrap">Fund a Project</Button>
+            </Link>
+          </div>
+
+          {/* Mobile menu button: force clickable */}
+          <div className="ml-auto md:hidden pointer-events-auto">
+            <button
+              type="button"
+              aria-label="Toggle menu"
+              aria-expanded={open}
+              onClick={() => setOpen((v) => !v)}
+              className="relative z-50 touch-manipulation inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-black/10 bg-white active:scale-[0.98]"
+            >
+              {open ? <X size={18} /> : <Menu size={18} />}
+            </button>
+          </div>
+        </div>
+      </Container>
+
+      {/* Mobile drawer */}
+      <div className={cn("md:hidden border-t border-black/5", open ? "block" : "hidden")}>
+        <Container className="py-4">
+          <div className="flex flex-col gap-3 text-sm pointer-events-auto">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setOpen(false)}
+                className="py-2 text-mutedInk hover:text-ink"
+              >
+                {item.label}
+              </Link>
+            ))}
+
+            <div className="grid gap-2 pt-2">
+              <Link href="/members/login?tab=signup" onClick={() => setOpen(false)}>
+                <Button className="w-full" variant="secondary">Become a Member</Button>
+              </Link>
+              <Link href="/donors" onClick={() => setOpen(false)}>
+                <Button className="w-full">Fund a Project</Button>
+              </Link>
+            </div>
+          </div>
+        </Container>
+      </div>
+    </header>
+  );
+}

@@ -1,0 +1,142 @@
+import Image from "next/image";
+import Link from "next/link";
+import { createClient } from "@supabase/supabase-js";
+import { Container } from "@/components/site/container";
+
+type Item = {
+  id?: string;
+  sort_order?: number;
+  title: string;
+  subtitle: string;
+  image_url: string;
+  href: string;
+  is_active: boolean;
+};
+
+const fallback: Item[] = [
+  {
+    title: "Children Support",
+    subtitle: "Community programs that improve wellbeing and opportunity.",
+    image_url: "/brand/hero.jpg",
+    href: "/impact",
+    is_active: true,
+    sort_order: 1,
+  },
+  {
+    title: "Women Groups",
+    subtitle: "Training, mentorship, and access to responsible finance.",
+    image_url: "/brand/card-1.jpg",
+    href: "/programs",
+    is_active: true,
+    sort_order: 2,
+  },
+  {
+    title: "Youth Startups",
+    subtitle: "Skills-building and low-interest support for income growth.",
+    image_url: "/brand/card-2.jpg",
+    href: "/apply",
+    is_active: true,
+    sort_order: 3,
+  },
+];
+
+async function loadItems(): Promise<Item[]> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return fallback;
+
+  const supabase = createClient(url, key);
+  const { data, error } = await supabase
+    .from("home_gallery_items")
+    .select("id, sort_order, title, subtitle, image_url, href, is_active")
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true });
+
+  if (error || !data) return fallback;
+  return data as Item[];
+}
+
+function safeText(v: unknown, fallbackValue: string) {
+  const s = typeof v === "string" ? v.trim() : "";
+  return s.length ? s : fallbackValue;
+}
+
+export async function ImpactGallery() {
+  const items = await loadItems();
+
+  return (
+    <section className="py-12 md:py-16">
+      <Container>
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <div className="text-xs font-semibold tracking-widest text-mutedInk uppercase">
+              Impact photos
+            </div>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight md:text-3xl">
+              Real work. Real people.
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm text-mutedInk md:text-base">
+              These are the communities we serve — youth, women, and children — through training,
+              mentoring, and responsible lending.
+            </p>
+          </div>
+
+          <Link
+            href="/impact"
+            className="hidden rounded-2xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold hover:bg-black/[0.02] md:inline-flex"
+          >
+            View Impact
+          </Link>
+        </div>
+
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
+          {items.map((it) => {
+            const title = safeText(it.title, "Community Impact");
+            const subtitle = safeText(
+              it.subtitle,
+              "Training, mentorship and responsible support for sustainable incomes."
+            );
+
+            return (
+              <Link
+                key={it.id ?? `${it.href}-${title}`}
+                href={it.href}
+                className="group relative overflow-hidden rounded-3xl border border-black/10 bg-white shadow-sm"
+              >
+                <div className="relative aspect-[4/3]">
+                  <Image
+                    src={it.image_url || "/brand/hero.jpg"}
+                    alt={title}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                  />
+                </div>
+
+                <div className="p-5">
+                  <div className="text-base font-semibold tracking-tight">{title}</div>
+                  <div className="mt-1 text-sm text-mutedInk">{subtitle}</div>
+                  <div className="mt-4 text-sm font-semibold">
+                    Learn more{" "}
+                    <span className="inline-block transition-transform duration-300 group-hover:translate-x-0.5">
+                      ?
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+
+        <div className="mt-6 md:hidden">
+          <Link
+            href="/impact"
+            className="inline-flex w-full items-center justify-center rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold hover:bg-black/[0.02]"
+          >
+            View Impact
+          </Link>
+        </div>
+      </Container>
+    </section>
+  );
+}

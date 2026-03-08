@@ -1,0 +1,52 @@
+﻿// app/apply/page.tsx
+import { useState } from "react";
+import { supabase } from "@/lib/supabase-browser";
+import { redirect } from "next/navigation";
+
+export default function ApplyPage() {
+  redirect("/members/login?tab=signup");
+}
+const [coverUploading, setCoverUploading] = useState(false);
+const [coverImageUrl, setCoverImageUrl] = useState("");
+async function uploadCover(file: File) {
+  setCoverUploading(true);
+  try {
+    const ext = file.name.split(".").pop() || "jpg";
+    const fileName = `cover-${Date.now()}.${ext}`;
+    const filePath = `projects/${fileName}`;
+
+    const { error: upErr } = await supabase.storage
+      .from("project-covers")
+      .upload(filePath, file, { upsert: true });
+
+    if (upErr) throw upErr;
+
+    const { data } = supabase.storage
+      .from("project-covers")
+      .getPublicUrl(filePath);
+
+    setCoverImageUrl(data.publicUrl);
+  } catch (e: any) {
+    alert(e?.message || "Failed to upload cover image.");
+  } finally {
+    setCoverUploading(false);
+  }
+}
+<div className="space-y-2">
+  <label className="text-sm font-semibold">Cover photo</label>
+  <input
+    type="file"
+    accept="image/*"
+    onChange={(e) => {
+      const file = e.target.files?.[0];
+      if (file) uploadCover(file);
+    }}
+    className="block w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm"
+  />
+  {coverUploading ? <p className="text-xs text-mutedInk">Uploading cover photo...</p> : null}
+  {coverImageUrl ? (
+    <div className="overflow-hidden rounded-2xl border border-black/10">
+      <img src={coverImageUrl} alt="Project cover preview" className="h-40 w-full object-cover" />
+    </div>
+  ) : null}
+</div>

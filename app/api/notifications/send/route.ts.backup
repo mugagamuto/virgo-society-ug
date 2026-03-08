@@ -1,6 +1,4 @@
 ﻿export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
 
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
@@ -15,6 +13,8 @@ type OutboxRow = {
   event: string | null;
   sent_at: string | null;
 };
+
+const resend = new Resend(process.env.RESEND_API_KEY!);
 
 function wrapEmail(title: string, subtitle: string, bodyHtml: string) {
   return `<!doctype html>
@@ -147,42 +147,44 @@ function renderFromRow(row: OutboxRow) {
   };
 }
 
-function getSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+async function sendEmail({
+  to,
+  subject,
+  html,
+}: {
+  to: string;
+  subject: string;
+  html: string;
+}) {
+  const from = process.env.MAIL_FROM || "Virgo Building Society <no-reply@virgosociety.org>";
+  if (!process.env.RESEND_API_KEY) throw new Error("Missing RESEND_API_KEY");
 
-  if (!url || !serviceRoleKey) {
-    throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
-  }
-
-  return createClient(url, serviceRoleKey);
+  return await resend.emails.send({
+    from,
+    to,
+    subject,
+    html,
+  });
 }
 
-async function sendEmail(to: string, subject: string, html: string) {
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.MAIL_FROM || "Virgo Building Society <no-reply@virgosociety.org>";
-
-  if (!apiKey) {
-    throw new Error("Missing RESEND_API_KEY");
-  }
-
-  const resend = new Resend(apiKey);
-  return await resend.emails.send({ from, to, subject, html });
+function getSupabaseAdmin() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const service = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+  if (!url || !service) throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY env vars.");
+  return createClient(url, service, { auth: { persistSession: false } });
 }
 
 async function handleRequest(req: Request) {
   try {
     const secret = process.env.NOTIFICATIONS_CRON_SECRET || process.env.CRON_SECRET;
-    if (!secret) {
-      throw new Error("Missing NOTIFICATIONS_CRON_SECRET or CRON_SECRET");
-    }
+    if (!secret) throw new Error("Missing NOTIFICATIONS_CRON_SECRET env var.");
 
     const auth = req.headers.get("authorization") || "";
     if (auth !== `Bearer ${secret}`) {
       return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    const supabase = getSupabase();
+    const supabase = getSupabaseAdmin();
 
     const { data, error } = await supabase
       .from("notification_outbox")
@@ -200,7 +202,11 @@ async function handleRequest(req: Request) {
     for (const row of rows) {
       try {
         const t = renderFromRow(row);
-        await sendEmail(row.to_email, t.subject, t.html);
+        await sendEmail({
+          to: row.to_email,
+          subject: t.subject,
+          html: t.html,
+        });
 
         const { error: upErr } = await supabase
           .from("notification_outbox")
@@ -220,7 +226,7 @@ async function handleRequest(req: Request) {
   } catch (e: any) {
     console.error("notifications/send error:", e);
     return NextResponse.json(
-      { ok: false, error: e?.message || String(e) },
+      { ok: false, error: e?.message || String(e), stack: e?.stack || null },
       { status: 500 }
     );
   }
@@ -230,6 +236,16 @@ export async function GET(req: Request) {
   return handleRequest(req);
 }
 
+async function handleRequest(req: Request) {
+  return handleRequest(req);
+}
+
+
+export async function GET(req: Request) {
+  return handleRequest(req);
+}
+
 export async function POST(req: Request) {
   return handleRequest(req);
 }
+
