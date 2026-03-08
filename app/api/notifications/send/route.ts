@@ -1,6 +1,6 @@
 ﻿export const runtime = "nodejs";
 import { NextResponse } from "next/server";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import { createClient } from "@supabase/supabase-js";
 
 type OutboxRow = {
@@ -207,22 +207,25 @@ function renderFromRow(row: OutboxRow) {
   };
 }
 // ---- SMTP Transport (Titan) ----
-function getTransport() {
-  const host = process.env.TITAN_SMTP_HOST || "smtp.titan.email";
-  const port = Number(process.env.TITAN_SMTP_PORT || "587");
-  const user = process.env.TITAN_SMTP_USER!;
-  const pass = process.env.TITAN_SMTP_PASS!;
 
-  if (!user || !pass) throw new Error("Missing TITAN_SMTP_USER or TITAN_SMTP_PASS env vars.");
 
-  return nodemailer.createTransport({
-    host,
-    port,
-    secure: port === 465, // 465 = SSL, 587 = STARTTLS
-    auth: { user, pass },
-  });
+
+const resend = new Resend(process.env.RESEND_API_KEY!);
+
+async function sendEmail({
+  to,
+  subject,
+  html,
+}: {
+  to: string;
+  subject: string;
+  html: string;
+}) {
+  const from = process.env.MAIL_FROM || "Virgo Building Society <no-reply@virgosociety.org>";
+  if (!process.env.RESEND_API_KEY) throw new Error("Missing RESEND_API_KEY");
+  const r = await resend.emails.send({ from, to, subject, html });
+  return r;
 }
-
 function getSupabaseAdmin() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const service = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -245,7 +248,6 @@ export async function POST(req: Request) {
     if (!fromEmail) throw new Error("Missing MAIL_FROM (or TITAN_SMTP_USER).");
 
     const supabase = getSupabaseAdmin();
-    const transport = getTransport();
 
     // fetch unsent rows
     const { data, error } = await supabase
@@ -266,12 +268,7 @@ export async function POST(req: Request) {
         const t = renderFromRow(row);
         const subject = t.subject;
         const html = t.html;
-await transport.sendMail({
-          from: `${fromName} <${fromEmail}>`,
-          to: row.to_email,
-          subject,
-          html,
-        });
+await sendEmail({ to: row.to_email, subject, html });
 
         // mark as sent
         const { error: upErr } = await supabase
@@ -293,5 +290,6 @@ await transport.sendMail({
     return NextResponse.json({ ok: false, error: e?.message || String(e) }, { status: 500 });
   }
 }
+
 
 
