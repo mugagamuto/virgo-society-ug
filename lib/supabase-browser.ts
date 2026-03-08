@@ -1,27 +1,29 @@
 ﻿"use client";
 
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+let _client: SupabaseClient | null = null;
 
-// Singleton client in browser to avoid multiple instances
-declare global {
-  // eslint-disable-next-line no-var
-  var __supabase__: ReturnType<typeof createClient> | undefined;
+export function getSupabaseBrowser(): SupabaseClient {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !anonKey) {
+    throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY");
+  }
+
+  if (!_client) {
+    _client = createClient(url, anonKey);
+  }
+
+  return _client;
 }
 
-const isBrowser = typeof window !== "undefined";
-
-export const supabase =
-  globalThis.__supabase__ ??
-  createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true,
-      flowType: "pkce",
-},
-  });
-
-if (isBrowser) globalThis.__supabase__ = supabase;
+/**
+ * Safe export for existing imports like:
+ * import { supabase } from "@/lib/supabase-browser";
+ *
+ * On the server/build, this stays null-ish and does not crash at import time.
+ * In the browser, it initializes lazily.
+ */
+export const supabase = typeof window !== "undefined" ? getSupabaseBrowser() : (null as any);
