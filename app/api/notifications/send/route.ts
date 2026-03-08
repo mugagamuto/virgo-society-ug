@@ -174,7 +174,7 @@ function getSupabaseAdmin() {
   return createClient(url, service, { auth: { persistSession: false } });
 }
 
-export async function POST(req: Request) {
+async function handleRequest(req: Request) {
   try {
     const secret = process.env.NOTIFICATIONS_CRON_SECRET || process.env.CRON_SECRET;
     if (!secret) throw new Error("Missing NOTIFICATIONS_CRON_SECRET env var.");
@@ -230,4 +230,12 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
+}
+
+export async function GET(req: Request) {
+  return handleRequest(req);
+}
+
+export async function POST(req: Request) {
+  return handleRequest(req);
 }
