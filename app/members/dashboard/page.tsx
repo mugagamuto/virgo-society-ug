@@ -124,7 +124,14 @@ export default function MemberDashboard() {
             <div>
               <div className="text-xs font-semibold tracking-widest text-mutedInk uppercase">Member Portal</div>
               <h1 className="mt-1 text-2xl font-semibold tracking-tight">Welcome, {greetingName}</h1>
-<div className="mt-4 flex gap-3"><a href="/apply" className="rounded-2xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700">Create New Project</a></div>
+              <div className="mt-4 flex gap-3">
+                <Link
+                  href="/members/projects/new"
+                  className="rounded-2xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
+                >
+                  Create New Project
+                </Link>
+              </div>
               <p className="mt-1 text-sm text-mutedInk">
                 Track your projects, upload documents, submit for review, and monitor funding progress.
               </p>
@@ -158,11 +165,11 @@ export default function MemberDashboard() {
 
       <div className="mx-auto max-w-6xl px-4 py-8">
         {loading ? (
-          <div className="rounded-3xl border border-black/10 bg-black/[0.02] p-6 text-sm text-mutedInk">LoadingÃ¢â‚¬Â¦</div>
+          <div className="rounded-3xl border border-black/10 bg-black/[0.02] p-6 text-sm text-mutedInk">Loading...</div>
         ) : (
           <>
             <div className="grid gap-3 md:grid-cols-3">
-              <Card title="Projects" value={String(metrics.total)} sub={`${metrics.pending} pending Ã¢â‚¬Â¢ ${metrics.approved} approved`} />
+              <Card title="Projects" value={String(metrics.total)} sub={`${metrics.pending} pending • ${metrics.approved} approved`} />
               <Card title="Fundable" value={String(metrics.fundable)} sub="Approved and visible on Fund a Project" />
               <Card title="Total funded" value={`UGX ${fmtUGX(metrics.totalFunded)}`} sub={`Total goal UGX ${fmtUGX(metrics.totalGoal)}`} />
             </div>
@@ -183,7 +190,7 @@ export default function MemberDashboard() {
 
               {projects.length === 0 ? (
                 <div className="mt-4 rounded-2xl border border-black/10 bg-black/[0.02] p-4 text-sm text-mutedInk">
-                  No projects yet. Use Ã¢â‚¬Å“Create ProjectÃ¢â‚¬Â on this page (top action) or ask admin to enable it if hidden.
+                  No projects yet. Use "Create New Project" on this page.
                 </div>
               ) : (
                 <div className="mt-4 grid gap-3">
@@ -193,11 +200,11 @@ export default function MemberDashboard() {
                         <div>
                           <div className="text-sm font-semibold">{p.title || "Untitled project"}</div>
                           <div className="mt-1 text-xs text-mutedInk">
-                            {(p.org_name || "").trim()} {p.district ? `Ã¢â‚¬Â¢ ${p.district}` : ""} Ã¢â‚¬Â¢ Status: {p.status || "draft"} Ã¢â‚¬Â¢ Fundable:{" "}
+                            {(p.org_name || "").trim()} {p.district ? `• ${p.district}` : ""} • Status: {p.status || "draft"} • Fundable:{" "}
                             {p.is_fundable ? "Yes" : "No"}
                           </div>
                           <div className="mt-1 text-xs text-mutedInk">
-                            Goal: UGX {fmtUGX(Number(p.goal_ugx ?? 0))} Ã¢â‚¬Â¢ Funded: UGX {fmtUGX(Number(p.funded_ugx ?? p.amount_raised_ugx ?? 0))}
+                            Goal: UGX {fmtUGX(Number(p.goal_ugx ?? 0))} • Funded: UGX {fmtUGX(Number(p.funded_ugx ?? p.amount_raised_ugx ?? 0))}
                           </div>
                         </div>
 
@@ -205,7 +212,7 @@ export default function MemberDashboard() {
                           href={`/members/projects/${p.id}`}
                           className="inline-flex items-center justify-center rounded-2xl bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-black/90"
                         >
-                          Open ?
+                          Open →
                         </Link>
                       </div>
                     </div>
@@ -234,7 +241,7 @@ export default function MemberDashboard() {
                           <div className="h-full bg-emerald-700" style={{ width: `${pct}%` }} />
                         </div>
                         <div className="mt-2 text-xs text-mutedInk">
-                          UGX {fmtUGX(p.raised)} raised Ã¢â‚¬Â¢ Goal UGX {fmtUGX(p.goal)}
+                          UGX {fmtUGX(p.raised)} raised • Goal UGX {fmtUGX(p.goal)}
                         </div>
                       </div>
                     );
@@ -248,8 +255,3 @@ export default function MemberDashboard() {
     </div>
   );
 }
-
-
-
-
-
