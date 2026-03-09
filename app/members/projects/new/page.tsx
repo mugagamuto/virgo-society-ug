@@ -37,8 +37,8 @@ export default function NewProjectPage() {
           location: member?.location ?? null,
           district: member?.district ?? null,
           title: "New Project",
-          description: "",
-          goals: "",
+          description: "Project description will be added.",
+          goals: "Goals will be updated.",
           stage: "Planning",
           budget_ugx: 0,
           goal_ugx: 0,
@@ -96,3 +96,4 @@ export default function NewProjectPage() {
     </div>
   );
 }
+
