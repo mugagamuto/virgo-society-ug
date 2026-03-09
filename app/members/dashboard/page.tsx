@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -178,7 +178,7 @@ export default function MemberDashboard() {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <div className="text-sm font-semibold">Your projects</div>
-                  <div className="text-xs text-mutedInk">Open a project to upload documents and submit for admin review.</div>
+                  <div className="text-xs text-mutedInk">Open a project to upload files and submit for admin review.</div>
                 </div>
                 <Link
                   href="/members/dashboard"
