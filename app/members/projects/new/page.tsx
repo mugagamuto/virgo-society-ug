@@ -36,9 +36,9 @@ export default function NewProjectPage() {
           members_count: member?.members_count ?? null,
           location: member?.location ?? null,
           district: member?.district ?? null,
-          title: "New Project",
-          description: "Project description will be added.",
-          goals: "Goals will be updated.",
+          title: "New Project Draft",
+          description: "This draft project is being created so the member can continue editing the proposal, budget, cover photo, and supporting details before submitting it for admin approval and donor review.",
+          goals: "The goals of this draft project will be refined by the member to clearly explain the expected impact, funding need, implementation steps, and community or income improvement outcomes before submission.",
           stage: "Planning",
           budget_ugx: 0,
           goal_ugx: 0,
@@ -96,4 +96,5 @@ export default function NewProjectPage() {
     </div>
   );
 }
+
 
