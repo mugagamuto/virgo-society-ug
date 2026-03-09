@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -112,7 +112,7 @@ export default function AdminDonationsPage() {
                       {r?.projects?.title ?? "Project"} • {fmtUgx(r.amount_ugx)}
                     </div>
                     <div className="mt-1 text-xs text-mutedInk">
-                      Ref: {r.reference ?? "—"} • {r.status ?? "pending"} • {r.payment_method ?? "—"} •{" "}
+                      Ref: {r.reference ?? "—"} • {r.status ?? "submitted"} • {r.payment_method ?? "—"} •{" "}
                       {r.created_at ? new Date(r.created_at).toLocaleString() : ""}
                     </div>
                     <div className="mt-1 text-xs text-mutedInk">

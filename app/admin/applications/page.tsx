@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -13,14 +13,14 @@ type AppRow = {
   email: string | null;
 };
 
-const STATUSES = ["all", "pending", "approved", "rejected"] as const;
+const STATUSES = ["all", "submitted", "approved", "rejected"] as const;
 type StatusFilter = (typeof STATUSES)[number];
 
 export default function AdminApplicationsPage() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [rows, setRows] = useState<AppRow[]>([]);
-  const [status, setStatus] = useState<StatusFilter>("pending");
+  const [status, setStatus] = useState<StatusFilter>("submitted");
   const [q, setQ] = useState("");
 
   const filtered = useMemo(() => {
