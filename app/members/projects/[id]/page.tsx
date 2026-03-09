@@ -59,6 +59,7 @@ export default function MemberProjectDetailPage() {
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [coverUploading, setCoverUploading] = useState(false);
+  const [pdfUploading, setPdfUploading] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
   const [project, setProject] = useState<ProjectRow | null>(null);
@@ -72,6 +73,7 @@ export default function MemberProjectDetailPage() {
   const [proposalText, setProposalText] = useState("");
   const [budgetBreakdownText, setBudgetBreakdownText] = useState("");
   const [coverImageUrl, setCoverImageUrl] = useState("");
+  const [proposalPublicUrl, setProposalPublicUrl] = useState("");
 
   async function load() {
     setLoading(true);
@@ -126,6 +128,7 @@ export default function MemberProjectDetailPage() {
         p.budget_breakdown ? JSON.stringify(p.budget_breakdown, null, 2) : ""
       );
       setCoverImageUrl(p.cover_image_url || "");
+      setProposalPublicUrl(p.proposal_public_url || "");
     } catch (e: any) {
       setMsg(e?.message || "Failed to load project.");
     } finally {
@@ -164,6 +167,33 @@ export default function MemberProjectDetailPage() {
     }
   }
 
+  async function uploadProposalPdf(file: File) {
+    setPdfUploading(true);
+    setMsg(null);
+
+    try {
+      const ext = file.name.split(".").pop() || "pdf";
+      const fileName = `${id}-proposal-${Date.now()}.${ext}`;
+      const filePath = `proposals/${fileName}`;
+
+      const { error: upErr } = await supabase.storage
+        .from("project-docs")
+        .upload(filePath, file, { upsert: true });
+
+      if (upErr) throw upErr;
+
+      const { data } = supabase.storage
+        .from("project-docs")
+        .getPublicUrl(filePath);
+
+      setProposalPublicUrl(data.publicUrl);
+    } catch (e: any) {
+      setMsg(e?.message || "Failed to upload PDF.");
+    } finally {
+      setPdfUploading(false);
+    }
+  }
+
   const parsedBudgetBreakdown = useMemo(() => {
     if (!budgetBreakdownText.trim()) return null;
     try {
@@ -195,6 +225,7 @@ export default function MemberProjectDetailPage() {
         proposal_text: proposalText.trim(),
         budget_breakdown: parsedBudgetBreakdown,
         cover_image_url: coverImageUrl || null,
+        proposal_public_url: proposalPublicUrl || null,
         updated_at: new Date().toISOString(),
       };
 
@@ -227,6 +258,11 @@ export default function MemberProjectDetailPage() {
       return;
     }
 
+    if (!proposalPublicUrl) {
+      setMsg("Please upload a proposal PDF before submitting.");
+      return;
+    }
+
     setSubmitting(true);
     setMsg(null);
 
@@ -241,6 +277,7 @@ export default function MemberProjectDetailPage() {
         proposal_text: proposalText.trim(),
         budget_breakdown: parsedBudgetBreakdown,
         cover_image_url: coverImageUrl || null,
+        proposal_public_url: proposalPublicUrl || null,
         status: "submitted",
         submitted_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -273,7 +310,7 @@ export default function MemberProjectDetailPage() {
                 {loading ? "Loading..." : title || "New Project"}
               </h1>
               <p className="mt-2 max-w-2xl text-sm text-mutedInk">
-                Add proposal and budget, upload a cover image, then submit for approval.
+                Add proposal and budget, upload a cover image and PDF, then submit for approval.
               </p>
               {project ? (
                 <div className="mt-2 text-xs text-mutedInk">
@@ -379,6 +416,32 @@ export default function MemberProjectDetailPage() {
               </div>
 
               <div className="grid gap-2">
+                <FieldLabel>Proposal PDF</FieldLabel>
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) uploadProposalPdf(file);
+                  }}
+                  className="block w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm"
+                />
+                {pdfUploading ? (
+                  <div className="text-xs text-mutedInk">Uploading PDF...</div>
+                ) : null}
+                {proposalPublicUrl ? (
+                  <a
+                    href={proposalPublicUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-sm font-medium text-emerald-700 hover:underline"
+                  >
+                    Open uploaded PDF
+                  </a>
+                ) : null}
+              </div>
+
+              <div className="grid gap-2">
                 <FieldLabel>Budget breakdown (JSON)</FieldLabel>
                 <textarea
                   value={budgetBreakdownText}
@@ -466,7 +529,7 @@ export default function MemberProjectDetailPage() {
               <li>• Make your title clear and specific.</li>
               <li>• Explain how the funding will improve income or community impact.</li>
               <li>• Keep your budget realistic and easy to understand.</li>
-              <li>• Add a strong cover photo for better presentation.</li>
+              <li>• Add a strong cover photo and proposal PDF for better presentation.</li>
             </ul>
           </div>
         </div>
